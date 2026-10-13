@@ -1,0 +1,306 @@
+/* Carta Astral — estilos. Índigo con brillantina dorada. */
+@font-face {
+  font-family: 'Courgette';
+  src: url('../letras/Courgette-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+:root {
+  --fondo: #1D1857;
+  --tarjeta: #2A2478;
+  --realce: #352E8F;
+  --linea: #6A63C9;
+  --texto: #F7F4EA;
+  --tenue: #C9C7EE;
+  --oro: #F5C451;
+  --rosa: #FF9CB5;
+  --titulo: 'Courgette', 'Z003', 'URW Chancery L', 'Segoe Script', 'Lucida Handwriting', cursive;
+  --cuerpo: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'DejaVu Sans', sans-serif;
+  --simbolos: 'Noto Sans Symbols', 'Noto Sans Symbols 2', 'Segoe UI Symbol', 'DejaVu Sans', 'Symbola', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  color: var(--texto);
+  font-family: var(--cuerpo);
+  font-size: 15px;
+  line-height: 1.45;
+  /* La brillantina es una sola imagen pequeña que se repite (herramientas/generar_brillantina.py).
+     Hacerla con degradados dejaba la app muy lenta. */
+  background-color: var(--fondo);
+  background-image: url('brillantina.png');
+  background-size: 512px 512px;
+}
+[hidden] { display: none !important; }
+h1, h2, h3, p { margin: 0; }
+button, input, select { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--oro); outline-offset: 2px; }
+
+/* ---------- Estructura ---------- */
+.app { min-height: 100vh; display: flex; flex-wrap: wrap; }
+.menu {
+  flex: 1 1 220px; padding: 28px 16px; background: var(--tarjeta);
+  display: flex; flex-direction: column; gap: 20px;
+}
+.marca { padding: 0 12px; font-family: var(--titulo); font-size: 24px; line-height: 30px; }
+.menu-lista { display: flex; flex-direction: column; gap: 4px; }
+.menu-lista button {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--tenue);
+  font-size: 14px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.menu-lista button:hover { color: var(--oro); }
+.menu-lista button[aria-current="page"] { background: var(--realce); color: var(--oro); font-weight: 700; }
+.menu-lista svg { width: 20px; height: 20px; flex-shrink: 0; }
+.menu-nota { padding: 0 12px; font-size: 12px; line-height: 17px; color: var(--tenue); }
+/* Reproductor de música flotante: siempre a la vista, abajo a la derecha. */
+.musica {
+  position: fixed; right: 16px; bottom: 16px; z-index: 20; display: flex; flex-direction: column; gap: 8px;
+  max-width: 270px; padding: 8px; background: var(--tarjeta); border: 1px solid var(--oro); border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+.musica-fila { display: flex; gap: 6px; }
+.musica button {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--linea); border-radius: 10px; background: transparent;
+  color: var(--tenue); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.musica button:hover { color: var(--oro); border-color: var(--oro); }
+.musica button svg { width: 18px; height: 18px; flex-shrink: 0; }
+#musica-boton { flex-grow: 1; }
+#musica-boton[aria-pressed="true"] { background: var(--realce); border-color: var(--oro); color: var(--oro); }
+#musica-mas { width: 44px; padding: 0; }
+#musica-opciones { display: flex; flex-direction: column; gap: 6px; padding: 0 4px 4px; }
+.musica label { font-size: 12px; color: var(--tenue); }
+.musica select { height: 40px; padding: 0 10px; font-size: 13px; }
+.musica input[type="range"] { width: 100%; height: 28px; accent-color: var(--oro); }
+#musica-aviso { padding: 0 4px 2px; }
+#musica-aviso:empty { display: none; }
+body.ver-informe .musica { display: none; }
+main { flex: 999 1 560px; min-width: 0; padding: 32px 32px 96px; }
+.vista { display: flex; flex-direction: column; gap: 24px; }
+.columnas { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.col { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.col-estrecha { flex: 1 1 300px; }
+
+/* ---------- Texto ---------- */
+.sobretitulo { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--oro); text-transform: uppercase; }
+h1 { font-family: var(--titulo); font-weight: 400; font-size: 34px; line-height: 42px; }
+.subtitulo { font-size: 14px; line-height: 21px; color: var(--tenue); }
+.cabecera { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.cabecera > div:not(.heroe):not(.selector):not(.acciones) { display: flex; flex-direction: column; gap: 4px; }
+.etiqueta { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; line-height: 16px; color: var(--oro); text-transform: uppercase; }
+.etiqueta.rosa, .titulo-col.rosa { color: var(--rosa); }
+.etiqueta.tenue { color: var(--tenue); padding: 0 4px; }
+.titulo-col { font-family: var(--titulo); font-weight: 400; font-size: 22px; line-height: 28px; color: var(--oro); }
+.nota { font-size: 12px; line-height: 17px; color: var(--tenue); }
+.simbolo { font-family: var(--simbolos); }
+
+/* ---------- Tarjetas y botones ---------- */
+.tarjeta {
+  display: flex; flex-direction: column; gap: 6px; padding: 16px 18px;
+  background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px;
+}
+.tarjeta.destacada { border-color: var(--rosa); }
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px;
+  border: 0; border-radius: 12px; background: var(--oro); color: var(--fondo);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.boton:hover { background: #FFD671; }
+.boton.secundario { background: transparent; color: var(--tenue); border: 1px solid var(--linea); }
+.boton.secundario:hover { color: var(--oro); border-color: var(--oro); background: transparent; }
+.enlace {
+  padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700;
+  text-decoration: underline; cursor: pointer;
+}
+.enlace:hover { color: var(--oro); }
+.volver {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
+  padding: 0; border: 0; background: none; color: var(--tenue); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.volver:hover { color: var(--oro); }
+
+/* ---------- Tríada: signo solar, lunar y Ascendente ---------- */
+.triada { display: flex; flex-wrap: wrap; gap: 14px; }
+.triada-carta {
+  flex: 1 1 240px; min-width: 0; gap: 4px; border-color: var(--oro);
+  color: var(--texto); font: inherit; text-align: left; cursor: pointer;
+}
+button.triada-carta:hover { background: var(--realce); }
+.triada-carta.apagada { border-color: var(--linea); cursor: default; }
+.triada-signo { display: flex; align-items: center; gap: 10px; font-family: var(--titulo); font-size: 28px; line-height: 36px; }
+.triada-signo .simbolo { font-size: 24px; }
+.triada-ver { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--oro); }
+
+/* ---------- Formulario ---------- */
+.formulario { max-width: 640px; gap: 16px; padding: 24px; }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo label, .campo .rotulo { font-size: 13px; font-weight: 600; line-height: 18px; }
+.fila { display: flex; flex-wrap: wrap; gap: 12px; }
+.fila > .campo { flex: 1 1 170px; min-width: 0; }
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
+  height: 50px; width: 100%; padding: 0 14px; background: var(--fondo); border: 1px solid var(--linea);
+  border-radius: 12px; color: var(--texto); font-size: 15px; color-scheme: dark;
+}
+input::placeholder { color: #A9A6DC; }
+.con-sugerencias { position: relative; }
+.sugerencias {
+  position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none;
+  max-height: 300px; overflow-y: auto; background: var(--realce); border: 1px solid var(--oro); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.sugerencias li { padding: 10px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; cursor: pointer; }
+.sugerencias li:hover, .sugerencias li.activa { background: var(--tarjeta); color: var(--oro); }
+.casilla {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+  background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+}
+.casilla input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--oro); flex-shrink: 0; }
+.casilla label { display: flex; flex-direction: column; gap: 2px; min-height: 44px; justify-content: center; cursor: pointer; }
+.casilla strong { font-size: 14px; font-weight: 600; line-height: 20px; }
+details.ajustes { border: 1px dashed var(--linea); border-radius: 12px; padding: 0 14px; }
+details.ajustes summary { min-height: 44px; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--tenue); cursor: pointer; }
+details.ajustes[open] { padding-bottom: 14px; }
+.error { padding: 12px 14px; border: 1px solid var(--rosa); border-radius: 12px; color: var(--rosa); font-size: 14px; }
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.lista-datos > div { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--realce); }
+.lista-datos > div:last-child { border-bottom: 0; }
+.lista-datos b { width: 84px; flex-shrink: 0; font-size: 13px; color: var(--oro); }
+
+/* ---------- Rueda al estilo del reloj de Praga ---------- */
+.rueda { width: 100%; max-width: 560px; height: auto; display: block; align-self: center; }
+.rueda text { text-anchor: middle; dominant-baseline: central; }
+.r-signos text { font-family: var(--simbolos); font-size: 17px; fill: #F7D774; }
+.r-fichas text { font-family: var(--simbolos); font-size: 14px; fill: #F7D774; }
+.r-fichas text.rosa { fill: var(--rosa); }
+.r-horas text { font-family: Georgia, 'Times New Roman', 'DejaVu Serif', serif; font-size: 14px; font-weight: 700; fill: #F7D774; }
+.r-casas text { font-family: var(--titulo); font-size: 22px; fill: #F7D774; }
+.r-angulos text { font-family: var(--cuerpo); font-size: 10px; font-weight: 700; fill: #FBE9A9; }
+.r-rotulos text { font-family: Georgia, 'Times New Roman', 'DejaVu Serif', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 12px; line-height: 17px; color: var(--tenue); }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.leyenda i { width: 12px; height: 12px; flex-shrink: 0; box-sizing: border-box; border-radius: 50%; }
+
+/* ---------- Tablas y listas ---------- */
+.tabla-caja { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--realce); white-space: nowrap; }
+th { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--tenue); text-transform: uppercase; }
+tr:last-child td { border-bottom: 0; }
+td .simbolo { display: inline-block; width: 26px; font-size: 16px; }
+td .simbolo.sigla { font-family: var(--cuerpo); font-size: 11px; font-weight: 700; }
+.oro { color: var(--oro); }
+.rosa { color: var(--rosa); }
+.renglon { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 9px 0; border-bottom: 1px solid var(--realce); font-size: 14px; }
+.renglon:last-child { border-bottom: 0; }
+.renglon > span:first-child { flex-grow: 1; }
+.renglon small { flex-basis: 100%; font-size: 12px; color: var(--tenue); }
+/* Explicación amplia de un aspecto: aparece al pasar el cursor, tocar o enfocar el renglón. */
+.aspecto { position: relative; cursor: help; }
+.amplia {
+  display: none; position: absolute; z-index: 5; left: -8px; right: -8px; top: 100%;
+  padding: 12px 14px; background: var(--realce); border: 1px solid var(--oro); border-radius: 12px;
+  font-size: 13px; line-height: 19px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.amplia p + p { margin-top: 6px; }
+.aspecto:hover .amplia, .aspecto:focus .amplia { display: block; }
+.orbe { font-size: 12px; color: var(--tenue); }
+.casas-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 16px; font-size: 13px; }
+.casas-rejilla b { color: var(--tenue); }
+.numeros { margin-top: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.numero { display: flex; flex-direction: column; gap: 2px; padding: 12px; background: var(--realce); border-radius: 10px; }
+.numero .cifra { font-family: var(--titulo); font-size: 30px; line-height: 34px; color: var(--oro); }
+.numero b { font-size: 13px; line-height: 18px; }
+.numero span { font-size: 12px; line-height: 17px; color: var(--tenue); }
+.nombre-grande { font-family: var(--titulo); font-size: 24px; line-height: 30px; }
+
+/* ---------- Detalle ---------- */
+.heroe { display: flex; align-items: center; gap: 18px; }
+.heroe > div { display: flex; flex-direction: column; gap: 2px; }
+.heroe .glifo {
+  width: 72px; height: 72px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid var(--oro);
+  background: var(--tarjeta); color: var(--oro); display: flex; align-items: center; justify-content: center;
+  font-family: var(--simbolos); font-size: 34px;
+}
+.heroe .glifo.texto { font-family: var(--cuerpo); font-size: 20px; font-weight: 700; letter-spacing: 0.06em; }
+.heroe .glifo.rosa { border-color: var(--rosa); color: var(--rosa); }
+.selector { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; }
+.selector button { min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: transparent; color: var(--tenue); font-size: 14px; font-weight: 600; cursor: pointer; }
+.selector button[aria-pressed="true"] { background: var(--oro); color: var(--fondo); font-weight: 700; }
+.decanato-barra { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+.decanato-barra i { height: 10px; background: #4B44AE; }
+.decanato-barra i:first-child { border-radius: 5px 0 0 5px; }
+.decanato-barra i:nth-child(3) { border-radius: 0 5px 5px 0; }
+.decanato-barra i.activo { background: var(--oro); }
+.decanato-barra .marca-grado { position: absolute; top: -4px; width: 2px; height: 18px; margin-left: -1px; background: var(--texto); border-radius: 1px; }
+.decanato-pie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; font-size: 12px; color: var(--tenue); }
+.decanato-pie .activo { color: var(--oro); font-weight: 700; }
+.decanato-pie span:nth-child(2) { text-align: center; }
+.decanato-pie span:nth-child(3) { text-align: right; }
+.entre { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+
+/* ---------- Cielo de hoy y guía ---------- */
+.fichas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.ficha { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; }
+.ficha .glifo { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid var(--linea); display: flex; align-items: center; justify-content: center; font-family: var(--simbolos); font-size: 18px; }
+.ficha .glifo.oro { border-color: var(--oro); }
+.ficha .glifo.rosa { border-color: var(--rosa); }
+.ficha b { display: block; font-size: 14px; }
+.ficha span { font-size: 12px; color: var(--tenue); }
+.pastilla { align-self: flex-start; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--oro); font-size: 11px; font-weight: 700; line-height: 16px; color: var(--oro); }
+.pastilla.tensa { border-color: var(--rosa); color: var(--rosa); }
+.aspectos-guia { display: flex; flex-wrap: wrap; gap: 10px; }
+.aspectos-guia .tarjeta { flex: 1 1 260px; min-width: 0; flex-direction: row; align-items: flex-start; gap: 14px; }
+.aspectos-guia svg { width: 40px; height: 40px; flex-shrink: 0; }
+.aspectos-guia h3 { font-size: 16px; line-height: 22px; }
+.aspectos-guia h3 small { margin-left: 6px; font-size: 12px; font-weight: 400; color: var(--tenue); }
+.aspectos-guia p { font-size: 14px; line-height: 20px; }
+
+/* ---------- Informe para imprimir o guardar en PDF (papel blanco) ---------- */
+.informe { display: none; background: #fff; color: #1B1740; font-size: 11pt; line-height: 1.45; }
+body.ver-informe { background: #fff; }
+body.ver-informe .app { display: none; }
+body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; padding: 10mm 4mm; }
+.informe h1 { font-family: var(--titulo); font-size: 28pt; line-height: 1.15; color: #1D1857; }
+.informe h2 {
+  margin: 16pt 0 8pt; padding-bottom: 3pt; border-bottom: 1.5pt solid #D9B44A;
+  font-family: var(--titulo); font-weight: 400; font-size: 17pt; color: #1D1857; break-after: avoid;
+}
+.informe h3 { margin: 0 0 2pt; font-size: 11.5pt; }
+.informe p { margin: 0 0 3pt; }
+.informe .inf-bloque { margin-bottom: 8pt; break-inside: avoid; }
+.informe .inf-astro { margin-bottom: 14pt; padding-bottom: 6pt; border-bottom: 0.75pt solid #E4E1F0; }
+.informe .inf-astro h3 { font-size: 13pt; color: #1D1857; break-after: avoid; }
+.informe .inf-astro h3.sombra { color: #9C2450; }
+.informe .inf-etq { font-size: 8pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A6400; }
+.informe .inf-nota { font-size: 9pt; font-weight: 400; color: #5A5670; }
+.informe .inf-cabecera { margin-bottom: 10pt; }
+.informe .inf-portada { display: flex; align-items: center; gap: 10mm; }
+.informe .inf-portada .rueda { width: 100mm; max-width: 100mm; flex-shrink: 0; align-self: auto; }
+.informe .inf-signo { font-family: var(--titulo); font-size: 20pt; line-height: 1.2; color: #1D1857; }
+.informe .inf-numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm; }
+.informe .inf-cifra { display: block; font-family: var(--titulo); font-size: 24pt; line-height: 1.1; color: #8A6400; }
+.informe .sombra { color: #9C2450; }
+.informe .inf-pie { margin-top: 14pt; padding-top: 6pt; border-top: 0.75pt solid #CCC; font-size: 8.5pt; color: #5A5670; }
+.informe table { font-size: 10pt; }
+.informe th, .informe td { padding: 4pt 6pt; border-bottom: 0.75pt solid #DDD; }
+.informe th { color: #5A5670; }
+.informe .oro { color: #8A6400; }
+.informe .rosa { color: #9C2450; }
+.informe .casas-rejilla { font-size: 10pt; }
+.informe .casas-rejilla b { color: #5A5670; }
+
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; }
+  .app, .musica { display: none !important; }
+  .informe { display: block !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+@media (max-width: 560px) {
+  main { padding: 20px 16px; }
+  h1 { font-size: 28px; line-height: 36px; }
+  .numeros, .casas-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -1,0 +1,10 @@
+# Lo que no debe subirse a GitHub.
+# Ajustes de este equipo (llevan rutas de carpetas personales):
+.claude/
+# Los paquetes .zip se vuelven a generar con herramientas/empaquetar.py:
+distribuir/
+# Restos de Python y del sistema:
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

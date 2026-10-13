@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carta Astral</title>
+<meta name="theme-color" content="#1D1857">
+<link rel="icon" href="iconos/icono-192.png">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<div class="app">
+
+<nav class="menu" aria-label="Secciones">
+  <div class="marca">Carta Astral</div>
+  <div class="menu-lista">
+    <button type="button" data-vista="carta">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>
+      Carta natal
+    </button>
+    <button type="button" data-vista="hoy">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      Cielo de hoy
+    </button>
+    <button type="button" data-vista="guia">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h4"/></svg>
+      Cómo se lee
+    </button>
+    <button type="button" data-vista="datos">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+      Mis datos
+    </button>
+  </div>
+  <p class="menu-nota">Todo se guarda en este equipo. Funciona sin internet.<br>Software libre, licencia GPL v3.</p>
+</nav>
+
+<main>
+
+<!-- ===== Mis datos ===== -->
+<section id="vista-datos" class="vista">
+  <header class="cabecera"><div>
+    <div class="sobretitulo">Nueva carta</div>
+    <h1>Datos de nacimiento</h1>
+    <p class="subtitulo">Con tu nombre, fecha, hora y lugar calculamos dónde estaba cada astro en el momento en que naciste.</p>
+  </div></header>
+
+  <div class="columnas">
+    <form id="formulario" class="tarjeta formulario col" novalidate>
+      <div class="fila">
+        <div class="campo">
+          <label for="nombre">Tu nombre</label>
+          <input id="nombre" type="text" autocomplete="off" placeholder="Como te pusieron al nacer">
+        </div>
+        <div class="campo">
+          <label for="apellidos">Tus apellidos</label>
+          <input id="apellidos" type="text" autocomplete="off" placeholder="Los dos, si los tienes">
+        </div>
+      </div>
+      <span class="nota" style="margin-top: -8px">Del nombre sale su significado. Con nombre y apellidos se calculan tus números de expresión y alma.</span>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="fecha">Fecha de nacimiento</label>
+          <input id="fecha" type="date" min="1800-01-01" max="2050-12-31">
+        </div>
+        <div class="campo">
+          <label for="hora">Hora de nacimiento</label>
+          <input id="hora" type="time">
+        </div>
+      </div>
+
+      <div class="casilla">
+        <input id="sinhora" type="checkbox">
+        <label for="sinhora"><strong>No conozco mi hora exacta</strong>
+          <span class="nota">Sin hora no se pueden calcular el Ascendente ni las casas; la Luna se muestra aproximada.</span></label>
+      </div>
+
+      <div class="campo">
+        <label for="lugar">Lugar de nacimiento</label>
+        <div class="con-sugerencias">
+          <input id="lugar" type="text" autocomplete="off" placeholder="Empieza a escribir tu ciudad" role="combobox" aria-expanded="false" aria-controls="lugar-sugerencias" aria-autocomplete="list">
+          <ul id="lugar-sugerencias" class="sugerencias" role="listbox" aria-label="Ciudades que coinciden" hidden></ul>
+        </div>
+        <span id="lugar-estado" class="nota">Empieza a escribir y elige tu ciudad de la lista.</span>
+      </div>
+
+      <details id="ajustes" class="ajustes">
+        <summary>Mi ciudad no aparece: escribir coordenadas a mano</summary>
+        <div class="fila">
+          <div class="campo">
+            <label for="lat">Latitud (norte +, sur −)</label>
+            <input id="lat" type="number" step="any" min="-90" max="90" placeholder="19.43">
+          </div>
+          <div class="campo">
+            <label for="lon">Longitud (este +, oeste −)</label>
+            <input id="lon" type="number" step="any" min="-180" max="180" placeholder="-99.13">
+          </div>
+        </div>
+        <div class="campo" style="margin-top: 12px">
+          <label for="zona">Zona horaria</label>
+          <select id="zona"></select>
+        </div>
+      </details>
+
+      <div class="casilla">
+        <input id="polar" type="checkbox">
+        <label for="polar"><strong>Nací en zona polar: usar casas iguales</strong>
+          <span id="polar-nota" class="nota">Se marca sola si tu ciudad está más allá de 66° de latitud. También puedes marcarla tú.</span></label>
+      </div>
+
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <div class="acciones">
+        <button type="submit" class="boton">Calcular mi carta</button>
+        <button type="button" id="ejemplo" class="boton secundario">Probar con un ejemplo</button>
+        <button type="button" id="borrar" class="boton secundario">Borrar mis datos</button>
+      </div>
+    </form>
+
+    <aside class="col col-estrecha">
+      <section class="tarjeta lista-datos" style="gap: 0">
+        <h2 class="etiqueta" style="margin-bottom: 4px">Para qué sirve cada dato</h2>
+        <div><b>Nombre</b><span>Su significado y, junto con los apellidos, tus números de expresión y alma.</span></div>
+        <div><b>Fecha</b><span>El signo y grado del Sol, la Luna y los planetas, y tu camino de vida.</span></div>
+        <div><b>Hora</b><span>El Ascendente y las doce casas. Cambian cada pocos minutos.</span></div>
+        <div><b>Lugar</b><span>Desde dónde se miraba el cielo: también define el Ascendente y las casas.</span></div>
+      </section>
+      <section class="tarjeta">
+        <h2 class="etiqueta">Si naciste cerca de los polos</h2>
+        <p>Más allá de 66° de latitud, los signos y grados de los astros se calculan igual que en cualquier otro lugar. Solo cambian las casas: allí el sistema habitual (Placidus) no funciona, y por eso la casilla «zona polar» cambia a casas iguales.</p>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<!-- ===== Carta natal, detalle y cielo de hoy: los rellena js/app.js ===== -->
+<section id="vista-carta" class="vista" hidden></section>
+<section id="vista-detalle" class="vista" hidden></section>
+<section id="vista-hoy" class="vista" hidden></section>
+
+<!-- ===== Cómo se lee ===== -->
+<section id="vista-guia" class="vista" hidden>
+  <header class="cabecera"><div>
+    <div class="sobretitulo">Guía</div>
+    <h1>Cómo se lee</h1>
+    <p class="subtitulo">Cada frase de tu carta se arma con cuatro piezas, siempre en este orden.</p>
+  </div></header>
+
+  <div class="columnas">
+    <div class="col col-estrecha">
+      <section class="tarjeta lista-datos" style="gap: 0">
+        <h2 class="etiqueta" style="margin-bottom: 4px">Las cuatro piezas</h2>
+        <div><b>Astro</b><span>Qué parte de ti habla: identidad (Sol), emoción (Luna), imagen (Ascendente).</span></div>
+        <div><b>Signo</b><span>Con qué estilo lo hace, en su luz y en su lado oscuro.</span></div>
+        <div><b>Decanato</b><span>El matiz: cada 10° del signo tiene un sub-regente que lo colorea.</span></div>
+        <div><b>Aspecto</b><span>Cómo conversa con otro astro, según el ángulo que los separa.</span></div>
+      </section>
+      <section class="tarjeta">
+        <h2 class="etiqueta">El orbe</h2>
+        <p>Es el margen en grados con el que un aspecto todavía cuenta. Cuanto menor, más fuerte se siente.</p>
+      </section>
+      <section class="tarjeta lista-datos" style="gap: 0">
+        <h2 class="etiqueta" style="margin-bottom: 4px">Tus tres números</h2>
+        <div><b>Camino de vida</b><span>Sale de tu fecha de nacimiento.</span></div>
+        <div><b>Expresión</b><span>Sale de todas las letras de tu nombre y apellidos.</span></div>
+        <div><b>Alma</b><span>Sale solo de las vocales de tu nombre y apellidos.</span></div>
+      </section>
+    </div>
+
+    <section class="col" style="flex-grow: 2">
+      <h2 class="etiqueta tenue">Los cinco aspectos mayores</h2>
+      <div class="aspectos-guia">
+        <article class="tarjeta">
+          <svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="#C9C7EE" stroke-width="1.2"><circle cx="18" cy="18" r="14"/><path d="M18 18L32 18" stroke="#F5C451" stroke-width="1.6"/><circle cx="32" cy="18" r="3.4" fill="#F5C451" stroke="none"/></svg>
+          <div><h3>Conjunción <small>0° · fusión</small></h3><p>Dos astros en el mismo punto: sus energías se funden y se intensifican.</p></div>
+        </article>
+        <article class="tarjeta">
+          <svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="#C9C7EE" stroke-width="1.2"><circle cx="18" cy="18" r="14"/><path d="M32 18L18 18L25 5.9" stroke="#F5C451" stroke-width="1.6" stroke-linejoin="round"/><circle cx="32" cy="18" r="2.6" fill="#F5C451" stroke="none"/><circle cx="25" cy="5.9" r="2.6" fill="#F5C451" stroke="none"/></svg>
+          <div><h3>Sextil <small>60° · oportunidad</small></h3><p>Las energías cooperan, pero solo rinden si haces algo con ellas.</p></div>
+        </article>
+        <article class="tarjeta">
+          <svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="#C9C7EE" stroke-width="1.2"><circle cx="18" cy="18" r="14"/><path d="M32 18L18 18L18 4" stroke="#F5C451" stroke-width="1.6" stroke-linejoin="round"/><circle cx="32" cy="18" r="2.6" fill="#F5C451" stroke="none"/><circle cx="18" cy="4" r="2.6" fill="#F5C451" stroke="none"/></svg>
+          <div><h3>Cuadratura <small>90° · tensión</small></h3><p>Fricción entre dos necesidades: un reto que obliga a actuar y crecer.</p></div>
+        </article>
+        <article class="tarjeta">
+          <svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="#C9C7EE" stroke-width="1.2"><circle cx="18" cy="18" r="14"/><path d="M32 18L18 18L11 5.9" stroke="#F5C451" stroke-width="1.6" stroke-linejoin="round"/><circle cx="32" cy="18" r="2.6" fill="#F5C451" stroke="none"/><circle cx="11" cy="5.9" r="2.6" fill="#F5C451" stroke="none"/></svg>
+          <div><h3>Trígono <small>120° · fluidez</small></h3><p>Talento natural: lo que representan esos astros te sale sin esfuerzo.</p></div>
+        </article>
+        <article class="tarjeta">
+          <svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="#C9C7EE" stroke-width="1.2"><circle cx="18" cy="18" r="14"/><path d="M32 18L4 18" stroke="#F5C451" stroke-width="1.6"/><circle cx="32" cy="18" r="2.6" fill="#F5C451" stroke="none"/><circle cx="4" cy="18" r="2.6" fill="#F5C451" stroke="none"/></svg>
+          <div><h3>Oposición <small>180° · polaridad</small></h3><p>Dos fuerzas enfrentadas que piden equilibrio; suele vivirse a través de otras personas.</p></div>
+        </article>
+      </div>
+    </section>
+  </div>
+  <p class="nota">Créditos. Tríada, decanatos, sombras y Lilith: Guía Magna de Astrología. Ciudades: GeoNames (geonames.org), licencia CC BY 4.0.
+  Letra de los títulos: Courgette, licencia OFL. Carta Astral © 2026 Siddhartha, software libre bajo licencia GNU GPL versión 3.</p>
+</section>
+
+</main>
+</div>
+
+<!-- Reproductor de música: siempre a la vista, abajo a la derecha -->
+<div class="musica" role="group" aria-label="Música de fondo">
+  <div class="musica-fila">
+    <button type="button" id="musica-boton" aria-pressed="false">Poner música</button>
+    <button type="button" id="musica-mas" aria-expanded="false" aria-controls="musica-opciones" aria-label="Elegir melodía y volumen">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+    </button>
+  </div>
+  <div id="musica-opciones" hidden>
+    <label for="musica-melodia">Melodía</label>
+    <select id="musica-melodia"></select>
+    <label for="musica-volumen">Volumen</label>
+    <input id="musica-volumen" type="range" min="0" max="100" value="50">
+    <span class="nota">Todas las melodías están afinadas en 432 Hz.</span>
+  </div>
+  <input id="musica-archivos" type="file" accept="audio/*" multiple hidden>
+  <span id="musica-aviso" class="nota" aria-live="polite"></span>
+</div>
+
+<!-- Informe para imprimir o guardar en PDF: lo rellena js/app.js y solo se ve al imprimir -->
+<section id="informe" class="informe" aria-hidden="true"></section>
+
+<script src="js/guia.js"></script>
+<script src="js/textos.js"></script>
+<script src="js/nombres.js"></script>
+<script src="js/ciudades.js"></script>
+<script src="js/astro.js"></script>
+<script src="js/rueda.js"></script>
+<script src="js/numerologia.js"></script>
+<script src="js/app.js"></script>
+<script src="js/musica.js"></script>
+<script>
+  // Solo cuando la app está publicada en internet: permite instalarla y usarla sin conexión.
+  if (/^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    var enlace = document.createElement('link');
+    enlace.rel = 'manifest'; enlace.href = 'manifest.webmanifest';
+    document.head.appendChild(enlace);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>

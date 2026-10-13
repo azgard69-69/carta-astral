@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba visual de la rueda</title>
+<link rel="stylesheet" href="../css/estilos.css">
+<style>
+  body { padding: 20px; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 6px; font-size: 14px; color: var(--tenue); }
+</style>
+</head>
+<body>
+<!-- Dibuja la rueda para varias cartas difíciles, para comprobar a ojo que nada se encima. -->
+<div id="rejilla" class="rejilla"></div>
+<script src="../js/astro.js"></script>
+<script src="../js/rueda.js"></script>
+<script>
+  const CASOS = [
+    ['Ejemplo: 5 abr 1990, 14:30, Ciudad de México', { f: [1990, 4, 5, 14, 30], z: 'America/Mexico_City', lat: 19.4326, lon: -99.1332 }],
+    ['Sin hora de nacimiento', { f: [1990, 4, 5, 12, 0], z: 'America/Mexico_City', sinHora: true }],
+    ['Luna nueva: Sol y Luna juntos (10 oct 2026, Madrid)', { f: [2026, 10, 10, 17, 50], z: 'Europe/Madrid', lat: 40.4168, lon: -3.7038 }],
+    ['Hemisferio sur, de noche (Buenos Aires, 3 a. m.)', { f: [1985, 12, 24, 3, 0], z: 'America/Argentina/Buenos_Aires', lat: -34.6037, lon: -58.3816 }],
+    ['Zona polar con casas iguales (Tromsø)', { f: [2000, 6, 21, 9, 15], z: 'Europe/Oslo', lat: 69.6492, lon: 18.9553, sistema: 'iguales' }],
+    ['Muchos planetas juntos (5 feb 1962, Londres)', { f: [1962, 2, 5, 0, 30], z: 'Europe/London', lat: 51.5074, lon: -0.1278 }]
+  ];
+  document.getElementById('rejilla').innerHTML = CASOS.map(([titulo, c]) => {
+    const ms = Astro.aUTC(c.f[0], c.f[1], c.f[2], c.f[3], c.f[4], c.z);
+    const carta = Astro.calcularCarta({ ms, lat: c.lat, lon: c.lon, sinHora: c.sinHora, sistema: c.sistema || 'placidus' });
+    return `<figure><figcaption>${titulo}</figcaption>${Rueda.dibujar(carta)}</figure>`;
+  }).join('');
+</script>
+</body>
+</html>

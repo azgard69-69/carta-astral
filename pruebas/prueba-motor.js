@@ -75,6 +75,16 @@ const ret = Astro.retornoSolar(p.sol.lon, Date.UTC(2026, 3, 5, 20));
 igual('Retorno 2026 de la carta de ejemplo', new Date(ret).toISOString().slice(0, 10), '2026-04-05');
 cerca('Sol del retorno = Sol natal', Astro.calcularCarta({ ms: ret, sinHora: true }).puntos[0].lon, p.sol.lon, 0.0001);
 
+console.log('Calendario: eclipses y retrogradaciones');
+const dia = (ms) => new Date(ms).toISOString().slice(0, 10);
+igual('Eclipses de 2026', Astro.eclipses(Date.UTC(2026, 0, 1), 365).map((e) => dia(e.ms) + ' ' + e.tipo).join(' | '),
+  '2026-02-17 solar | 2026-03-03 lunar | 2026-08-12 solar | 2026-08-28 lunar');
+igual('Mercurio retrógrado 2026', Astro.retrogrados('mercurio', Date.UTC(2026, 0, 1), 365).map((r) => dia(r.inicio)).join(' | '),
+  '2026-02-26 | 2026-06-29 | 2026-10-24');
+const natalSol = [{ id: 'sol', lon: p.sol.lon, personal: true }];
+igual('Saturno sobre el Sol de ejemplo', Astro.transitos(natalSol, Date.UTC(2026, 9, 18), 365)
+  .filter((x) => x.astro === 'saturno').map((x) => x.aspecto.id + ' ' + dia(x.fechas[0])).join(' | '), 'conjuncion 2027-03-23');
+
 console.log('Numerología');
 igual('Camino de vida 5/4/1990', Num.caminoDeVida(5, 4, 1990), 1);
 igual('Camino maestro 29/11/1980', Num.caminoDeVida(29, 11, 1980), 4);

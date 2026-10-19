@@ -397,6 +397,90 @@
     return ms;
   }
 
+  // ---------- Calendario personal ----------
+
+  var DIA = 86400000;
+  var LENTOS = ['jupiter', 'saturno', 'urano', 'neptuno', 'pluton', 'quiron'];
+  function jdTT(ms) { return diaJuliano(ms) + deltaT(new Date(ms).getUTCFullYear()) / 86400; }
+  function siglosTT(ms) { return (jdTT(ms) - 2451545) / 36525; }
+  function dif(a, b) { return n360(a - b + 180) - 180; } // diferencia con signo, de −180 a 180
+
+  // Instantes en que f(ms), una diferencia en grados, pasa por cero entre «desde» y «hasta». Busca de «paso»
+  // en «paso» y afina por bisección; descarta los saltos de ±180°.
+  function cruces(f, desde, hasta, paso) {
+    var res = [], t0 = desde, v0 = f(desde), t1, v1;
+    for (t1 = desde + paso; t1 <= hasta; t1 += paso) {
+      v1 = f(t1);
+      if ((v0 < 0) !== (v1 < 0) && Math.abs(v0 - v1) < 90) {
+        var a = t0, b = t1, fa = v0;
+        for (var k = 0; k < 30; k++) {
+          var m = (a + b) / 2, fm = f(m);
+          if ((fm < 0) === (fa < 0)) { a = m; fa = fm; } else b = m;
+        }
+        res.push((a + b) / 2);
+      }
+      t0 = t1; v0 = v1;
+    }
+    return res;
+  }
+
+  // Tránsitos de los astros lentos sobre los puntos de una carta en los próximos «dias».
+  // A cada astro lento se le miran los puntos personales y su propia posición natal (los retornos).
+  // Devuelve { astro, punto, aspecto, fechas: [ms exactos] }: un mismo tránsito puede repetirse por la retrogradación.
+  function transitos(natal, desde, dias) {
+    var res = [], n = dias + 1;
+    LENTOS.forEach(function (id) {
+      var lons = [], k;
+      for (k = 0; k < n; k++) lons.push(lonPlaneta(id, jdTT(desde + k * DIA)));
+      natal.filter(function (p) { return p.personal || p.id === id; }).forEach(function (p) {
+        ASPECTOS.forEach(function (asp) {
+          if (asp.id === 'sextil' || (asp.id === 'trigono' && id !== 'jupiter')) return;
+          var angulos = asp.angulo === 0 || asp.angulo === 180 ? [asp.angulo] : [asp.angulo, -asp.angulo];
+          angulos.forEach(function (ang) {
+            var objetivo = n360(p.lon + ang), fechas = [];
+            for (k = 1; k < n; k++) {
+              var v0 = dif(lons[k - 1], objetivo), v1 = dif(lons[k], objetivo);
+              if ((v0 < 0) !== (v1 < 0) && Math.abs(v0 - v1) < 90) {
+                fechas = fechas.concat(cruces(function (ms) { return dif(lonPlaneta(id, jdTT(ms)), objetivo); },
+                  desde + (k - 1) * DIA, desde + k * DIA, DIA));
+              }
+            }
+            if (fechas.length) res.push({ astro: id, punto: p, aspecto: asp, fechas: fechas });
+          });
+        });
+      });
+    });
+    return res.sort(function (x, y) { return x.fechas[0] - y.fechas[0]; });
+  }
+
+  // Eclipses en los próximos «dias»: lunas nuevas (solares) y llenas (lunares) cerca del eje de los nodos.
+  // Límites aproximados: solar hasta 16,5° del nodo; lunar hasta 17° (penumbral, apenas visible, a partir de 11,5°).
+  function eclipses(desde, dias) {
+    var hasta = desde + dias * DIA, res = [];
+    var elongacion = function (ms) { var T = siglosTT(ms); return n360(lonLuna(T) - lonSol(T)); };
+    [[0, 'solar', 16.5], [180, 'lunar', 17]].forEach(function (f) {
+      cruces(function (ms) { return dif(elongacion(ms), f[0]); }, desde, hasta, DIA / 4).forEach(function (ms) {
+        var T = siglosTT(ms), sol = lonSol(T), d = Math.abs(dif(sol, lonNodo(T)));
+        if (d > 90) d = 180 - d;
+        if (d > f[2]) return;
+        res.push({ ms: ms, tipo: f[1], penumbral: f[1] === 'lunar' && d > 11.5, lon: f[1] === 'solar' ? sol : n360(sol + 180) });
+      });
+    });
+    return res.sort(function (x, y) { return x.ms - y.ms; });
+  }
+
+  // Periodos en que un planeta parece ir hacia atrás, entre «desde» y «desde + dias».
+  function retrogrados(id, desde, dias) {
+    var hasta = desde + dias * DIA, res = [];
+    var mov = function (ms) { var j = jdTT(ms); return dif(lonPlaneta(id, j + 0.25), lonPlaneta(id, j - 0.25)); };
+    var inicio = mov(desde) < 0 ? desde : null;
+    cruces(mov, desde, hasta + 160 * DIA, DIA).forEach(function (ms) {
+      if (mov(ms + DIA) < 0) inicio = ms;
+      else if (inicio !== null) { res.push({ inicio: inicio, fin: ms }); inicio = null; }
+    });
+    return res.filter(function (r) { return r.inicio < hasta; });
+  }
+
   // Próximos cambios de signo y fases lunares a partir de un instante (resolución de una hora).
   function proximosEventos(ms, dias) {
     var HORA = 3600000, ev = [], k, t, T, s, l, e;
@@ -431,7 +515,8 @@
     lonSol: lonSol, lonLuna: lonLuna, lonLilith: lonLilith, lonPlaneta: lonPlaneta,
     casas: casas, casaDe: casaDe, horaSolar: horaSolar, posicion: posicion, textoOrbe: textoOrbe,
     aspectos: aspectos, calcularCarta: calcularCarta, proximosEventos: proximosEventos,
-    retornoSolar: retornoSolar, retornoLunar: retornoLunar, lonNodo: lonNodo
+    retornoSolar: retornoSolar, retornoLunar: retornoLunar, lonNodo: lonNodo,
+    transitos: transitos, eclipses: eclipses, retrogrados: retrogrados
   };
   g.Astro = Astro;
   if (typeof module !== 'undefined' && module.exports) module.exports = Astro;

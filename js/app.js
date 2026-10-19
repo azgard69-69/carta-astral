@@ -699,7 +699,122 @@
       <div class="tarjeta" style="gap: 0">${eventos.map((e) =>
         `<div class="renglon"><span>${e.texto}</span><span class="orbe">${textoMomento(e.ms)}</span></div>`).join('')}</div>
       <p class="nota">Fechas en la hora de este equipo, con margen de una hora.</p></section></div>`;
+    h += seccionCalendario();
     $('#vista-hoy').innerHTML = h;
+  }
+
+  // ---------- Calendario personal (dentro de «Cielo de hoy») ----------
+
+  const PERSONALES = ['sol', 'luna', 'venus', 'marte', 'asc', 'mc'];
+  const NOMBRE_LENTO = { mercurio: 'Mercurio', venus: 'Venus', marte: 'Marte', jupiter: 'Júpiter', saturno: 'Saturno',
+    urano: 'Urano', neptuno: 'Neptuno', pluton: 'Plutón', quiron: 'Quirón' };
+  const MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  let calendario = null; // se calcula una vez al día, o de nuevo si cambia la carta
+
+  const fechaCorta = (ms) => { const f = new Date(ms); return f.getDate() + ' ' + MESES[f.getMonth()] + ' ' + f.getFullYear(); };
+  const enLista = (t) => t.length < 2 ? t.join('') : t.slice(0, -1).join(', ') + ' y ' + t[t.length - 1];
+
+  function fraseTransito(x) {
+    const a = TEXTOS.astros[x.astro], p = TEXTOS.aspectosHoy[x.aspecto.id];
+    return `${a.articulo} mueve ${a.mueve} y ${p[0]} ${TEXTOS.astros[x.punto.id].corto}${p[1]} Se nota durante ${a.dura}.`;
+  }
+
+  // Todos los eventos de los próximos doce meses, en orden. Sin carta, solo los generales.
+  function eventosCalendario() {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const desde = hoy.getTime(), dias = 365, clave = desde + '|' + (estado.carta ? estado.carta.jd : '');
+    if (calendario && calendario.clave === clave) return calendario.eventos;
+    const eventos = [], c = estado.carta;
+    if (c) {
+      const natal = c.puntos.concat(c.angulos).map((p) => Object.assign({}, p, { personal: PERSONALES.includes(p.id) }));
+      A.transitos(natal, desde, dias).forEach((x) => {
+        const especial = TEXTOS.calendario.especiales[x.astro + '-' + x.aspecto.id + '-' + x.punto.id];
+        eventos.push({
+          ms: x.fechas[0], fechas: x.fechas, tenso: !!TENSOS[x.aspecto.id],
+          titulo: especial ? especial[0] : `${NOMBRE_LENTO[x.astro]} ${x.aspecto.nombre} tu ${x.punto.nombre}`,
+          texto: especial ? especial[1] : fraseTransito(x),
+          cuando: 'Exacto el ' + enLista(x.fechas.map(fechaCorta)) + (x.fechas.length > 1 ? ' (va y viene porque el planeta retrocede)' : '')
+        });
+      });
+    }
+    A.eclipses(desde, dias).forEach((e) => {
+      const signo = GUIA.signos[Math.floor(e.lon / 30)];
+      let texto = TEXTOS.calendario.eclipse[e.tipo] + (e.penumbral ? ' ' + TEXTOS.calendario.eclipse.penumbral : '');
+      if (c && c.casas) {
+        const casa = A.casaDe(e.lon, c.casas.cuspides);
+        texto += ` En tu carta cae en la casa ${casa}: ${TEXTOS.casasCorto[casa]}.`;
+      }
+      if (c) {
+        c.puntos.concat(c.angulos).filter((p) => p.id !== 'nodosur' && Math.abs(((p.lon - e.lon + 540) % 360) - 180) <= 5)
+          .forEach((p) => { texto += ` Toca tu ${p.nombre}: ${TEXTOS.astros[p.id].corto} puede dar un giro.`; });
+      }
+      eventos.push({ ms: e.ms, titulo: `Eclipse ${e.tipo}${e.penumbral ? ' penumbral' : ''} en ${signo.nombre}`, texto: texto, cuando: fechaCorta(e.ms) });
+    });
+    ['mercurio', 'venus', 'marte'].forEach((id) => A.retrogrados(id, desde, dias).forEach((r) => {
+      eventos.push({ ms: r.inicio, fin: r.fin, tenso: true, titulo: NOMBRE_LENTO[id] + ' retrógrado', texto: TEXTOS.calendario.retro[id],
+        cuando: (r.inicio <= desde ? 'Hasta el ' : 'Del ' + fechaCorta(r.inicio) + ' al ') + fechaCorta(r.fin) });
+    }));
+    if (c && estado.datos && !estado.datos.sinHora) {
+      let anio = hoy.getFullYear(), ms = momentoRetorno(anio);
+      if (ms < desde) ms = momentoRetorno(++anio);
+      if (ms < desde + dias * 86400000) {
+        eventos.push({ ms: ms, titulo: 'Tu retorno solar', cuando: fechaCorta(ms),
+          texto: 'Tu Sol vuelve al grado en que naciste: empieza tu nuevo año astrológico. Míralo en «Retornos».' });
+      }
+    }
+    eventos.sort((x, y) => x.ms - y.ms);
+    calendario = { clave: clave, eventos: eventos };
+    return eventos;
+  }
+
+  function seccionCalendario() {
+    const eventos = eventosCalendario();
+    let h = `<section class="calendario"><div class="calendario-cabecera">
+        <h2 class="etiqueta tenue">${estado.carta ? 'Tus fechas importantes' : 'Fechas importantes'} · próximos 12 meses</h2>
+        <button type="button" class="boton secundario" data-accion="calendario-ics">Pasar a mi calendario</button></div>
+      <p class="nota">${estado.carta ? 'Planetas lentos que pasan por puntos clave de tu carta, eclipses y retrogradaciones.'
+        : 'Eclipses y retrogradaciones. Calcula tu carta para ver también las fechas que te tocan a ti.'}
+        «Pasar a mi calendario» descarga un archivo que se abre con el calendario del teléfono o de la computadora.</p>`;
+    let mes = '';
+    eventos.forEach((e) => {
+      const f = new Date(e.ms), m = MESES_LARGOS[f.getMonth()] + ' ' + f.getFullYear();
+      if (m !== mes) { h += (mes ? '</div>' : '') + `<h3 class="calendario-mes">${m}</h3><div class="eventos">`; mes = m; }
+      h += `<article class="tarjeta evento"><span class="pastilla ${e.tenso ? 'tensa' : ''}">${esc(e.cuando)}</span>
+        <h3>${esc(e.titulo)}</h3><p>${esc(e.texto)}</p></article>`;
+    });
+    return h + (mes ? '</div>' : '') + '</section>';
+  }
+
+  // Archivo .ics con los eventos, para el calendario del teléfono o de la computadora.
+  function descargarCalendario() {
+    const dia = (ms) => { const f = new Date(ms); return f.getFullYear() + String(f.getMonth() + 1).padStart(2, '0') + String(f.getDate()).padStart(2, '0'); };
+    const escapar = (t) => String(t).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
+    // Las líneas del formato no deben pasar de 75 bytes; las letras con acento ocupan dos.
+    const doblar = (linea) => {
+      const partes = [];
+      let actual = '', bytes = 0;
+      for (const letra of linea) {
+        const b = new TextEncoder().encode(letra).length;
+        if (bytes + b > 73) { partes.push(actual); actual = ''; bytes = 0; }
+        actual += letra; bytes += b;
+      }
+      return partes.concat(actual).join('\r\n ');
+    };
+    const sello = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    const lineas = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Carta Astral//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Carta Astral'];
+    let n = 0;
+    eventosCalendario().forEach((e) => (e.fechas || [e.ms]).forEach((ms) => {
+      lineas.push('BEGIN:VEVENT', 'UID:carta-astral-' + (n++) + '-' + dia(ms) + '@carta-astral', 'DTSTAMP:' + sello,
+        'DTSTART;VALUE=DATE:' + dia(ms), 'DTEND;VALUE=DATE:' + dia((e.fin || ms) + 86400000),
+        doblar('SUMMARY:' + escapar(e.titulo)), doblar('DESCRIPTION:' + escapar(e.texto)), 'TRANSP:TRANSPARENT', 'END:VEVENT');
+    }));
+    lineas.push('END:VCALENDAR');
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(new Blob([lineas.join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' }));
+    enlace.download = 'carta-astral-fechas.ics';
+    document.body.appendChild(enlace);
+    enlace.click();
+    setTimeout(() => { URL.revokeObjectURL(enlace.href); enlace.remove(); }, 1000);
   }
 
   // ---------- Retornos solar y lunar ----------
@@ -1277,6 +1392,7 @@
     if (!b) return;
     if (b.dataset.accion === 'imprimir') imprimir();
     else if (b.dataset.accion === 'escuchar') escuchar();
+    else if (b.dataset.accion === 'calendario-ics') descargarCalendario();
     else if (b.dataset.accion === 'retorno-anio') { Voz.parar(); estado.retorno.anio = Number(b.dataset.anio); pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-natal') { Voz.parar(); estado.retorno.lugar = null; pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-mes') { Voz.parar(); estado.retorno.mes = Number(b.dataset.mes); pintarRetorno(); ponerBotonVoz(); }

@@ -316,6 +316,15 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
 .factor .pastilla { align-self: flex-start; }
 .factor p { font-size: 14px; line-height: 20px; }
 
+/* Calendario personal, en «Cielo de hoy». */
+.calendario { display: flex; flex-direction: column; gap: 12px; }
+.calendario-cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.calendario-mes { margin-top: 8px; font-family: var(--titulo); font-weight: 400; font-size: 22px; line-height: 28px; color: var(--oro); }
+.eventos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.evento { gap: 8px; }
+.evento h3 { font-size: 16px; line-height: 22px; }
+.evento p { font-size: 14px; line-height: 20px; color: var(--tenue); }
+
 /* Pestañas (retorno solar o lunar). */
 .pestanas { display: inline-flex; flex-wrap: wrap; gap: 4px; align-self: flex-start; padding: 4px; background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 12px; }
 .pestanas button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--tenue); font-size: 14px; font-weight: 600; cursor: pointer; }

@@ -280,6 +280,32 @@ window.TEXTOS = {
     oposicion: 'Vean a la otra persona como su complemento, no como su rival: cada quien aporta lo que le falta a quien tiene al lado.'
   },
 
+  // Calendario personal: fechas importantes de los próximos doce meses.
+  calendario: {
+    // Tránsitos con nombre propio. La clave es «astro-aspecto-punto natal».
+    especiales: {
+      'jupiter-conjuncion-jupiter': ['Retorno de Júpiter', 'Empieza un ciclo de crecimiento de doce años: buen momento para sembrar planes grandes.'],
+      'saturno-conjuncion-saturno': ['Retorno de Saturno', 'Hacia los 29 y los 58 años: toca madurar, revisar tu rumbo y construir sobre bases propias. Pide esfuerzo, pero lo que hagas ahora dura.'],
+      'saturno-oposicion-saturno': ['Oposición de Saturno', 'A mitad del ciclo de Saturno, hacia los 14, 44 y 73 años: cosechas lo construido y ves lo que hay que ajustar.'],
+      'saturno-cuadratura-saturno': ['Cuadratura de Saturno', 'Un examen de lo que estás construyendo: aparecen obstáculos que te piden más compromiso o un cambio de plan.'],
+      'urano-oposicion-urano': ['Oposición de Urano', 'Hacia los 42 años, la llamada crisis de la mitad de la vida: ganas de libertad y de hacer lo que de verdad quieres.'],
+      'urano-cuadratura-urano': ['Cuadratura de Urano', 'Hacia los 21 y los 63 años: ganas de romper con lo que te ata y de vivir a tu manera.'],
+      'neptuno-cuadratura-neptuno': ['Cuadratura de Neptuno', 'Hacia los 41 años: revisas tus sueños e ilusiones; algunos se disuelven para dejar paso a otros más tuyos.'],
+      'pluton-cuadratura-pluton': ['Cuadratura de Plutón', 'Una transformación profunda de mitad de la vida: sueltas lo que ya no te sirve para renacer.'],
+      'quiron-conjuncion-quiron': ['Retorno de Quirón', 'Hacia los 50 años: la vieja herida vuelve a doler para que por fin la sanes y la conviertas en sabiduría.']
+    },
+    eclipse: {
+      solar: 'Los eclipses solares abren capítulos: buen momento para empezar algo nuevo en el área que tocan.',
+      lunar: 'Los eclipses lunares cierran ciclos y sacan emociones a la luz: algo llega a su fin o se revela.',
+      penumbral: 'Es un eclipse suave, apenas visible: su efecto también es más leve.'
+    },
+    retro: {
+      mercurio: 'Revisa antes de firmar, viajar o comprar aparatos, y ten paciencia con los malentendidos. Buen momento para repasar, corregir y retomar contactos.',
+      venus: 'Se revisan los afectos y los gastos: mejor no empezar relaciones ni hacer cambios de imagen drásticos.',
+      marte: 'La energía va hacia dentro: revisa tus planes antes de lanzarte y evita las peleas.'
+    }
+  },
+
   // Planeta en cada signo, en orden: Aries, Tauro, Géminis, Cáncer, Leo, Virgo,
   // Libra, Escorpio, Sagitario, Capricornio, Acuario, Piscis.
   enSigno: {

@@ -463,7 +463,9 @@
   const ICONO_TOCAR = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
 
   function pintar() {
-    boton.innerHTML = estado.encendida ? ICONO_PAUSA + 'Pausar música' : ICONO_TOCAR + 'Poner música';
+    // El texto va aparte para poder esconderlo en pantallas muy estrechas (queda solo el icono).
+    boton.innerHTML = (estado.encendida ? ICONO_PAUSA : ICONO_TOCAR) +
+      `<span class="musica-texto">${estado.encendida ? 'Pausar música' : 'Poner música'}</span>`;
     boton.setAttribute('aria-pressed', String(estado.encendida));
     lista.value = estado.melodia;
     aviso.textContent = estado.encendida && ctx && ctx.state === 'suspended'

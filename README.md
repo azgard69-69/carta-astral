@@ -178,6 +178,7 @@ La app es gratuita y lo seguirá siendo. Todavía no hay un enlace para donar; c
 ## Pendiente
 
 - Que alguien que sepa de astrología revise los borradores de `js/textos.js` y `js/nombres.js`.
+- Probar `Abrir Carta Astral.bat` en un Windows de verdad (se escribió sin poder probarlo;
+  `index.html` funciona igual).
 - Programas instaladores de verdad (`.exe` para Windows, `.AppImage` para Linux): se pueden
-  generar gratis desde GitHub una vez que el proyecto esté allí.
-- Hacer público el repositorio de GitHub y publicar la app en GitHub Pages (por ahora es privado).
+  generar gratis desde GitHub.

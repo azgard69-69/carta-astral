@@ -295,6 +295,11 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
   .informe { display: block !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 
+/* Apoyar el proyecto: el código de CoDi va sobre blanco y sin suavizar, para que se pueda escanear. */
+.apoyo-cuerpo { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; }
+.apoyo-cuerpo > div { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }
+.apoyo img { display: block; width: 240px; max-width: 100%; height: auto; border-radius: 10px; background: #fff; image-rendering: pixelated; }
+
 /* Retorno solar: el buscador del lugar del cumpleaños. */
 .retorno-cuando label { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--tenue); }
 .retorno-cuando input { width: 100%; max-width: 440px; }

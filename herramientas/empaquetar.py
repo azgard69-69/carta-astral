@@ -16,7 +16,7 @@ VERSION = "0.3"
 RENOMBRAR = {"README.md": "LÉEME.md"}
 INCLUIR = ["index.html", "manifest.webmanifest", "sw.js", "LICENSE", "README.md",
            "abrir-linux.sh", "instalar-linux.sh", "Abrir Carta Astral.bat",
-           "css", "js", "letras", "iconos"]
+           "css", "js", "letras", "iconos", "imagenes"]
 
 
 def main():

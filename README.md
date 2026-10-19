@@ -126,6 +126,7 @@ de la app.
 | `js/app.js` | Une el formulario, los cálculos y los textos. |
 | `letras/` | La letra cursiva de los títulos (Courgette) y su licencia. |
 | `iconos/` | El icono de la app. |
+| `imagenes/` | El código de CoDi para apoyar el proyecto. |
 | `herramientas/` | Programas de apoyo: convertir la guía, las ciudades, dibujar el icono, empaquetar. |
 | `pruebas/` | Comprobaciones de los cálculos y de la rueda. |
 | `LICENSE` | El texto de la licencia GPL versión 3. |
@@ -183,7 +184,15 @@ Partes que conservan su propia licencia:
 
 ## Donaciones
 
-La app es gratuita y lo seguirá siendo. Todavía no hay un enlace para donar; cuando exista, aparecerá aquí.
+La app es gratuita y lo seguirá siendo. Si te sirvió y quieres apoyarla, puedes hacerlo con CoDi
+desde la app de tu banco (solo bancos de México):
+
+<img src="imagenes/codi.png" width="240" alt="Código QR de CoDi para apoyar Carta Astral">
+
+## Pruebas con personas
+
+En las pruebas de las versiones beta, personas elegidas al azar revisaron su carta natal: se
+quedaron sorprendidas, emocionadas y cautivadas, y hubo quienes se asustaron al verla.
 
 ## Pendiente
 

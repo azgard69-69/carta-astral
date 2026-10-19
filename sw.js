@@ -3,7 +3,7 @@
  * se pueda instalar y abrir sin conexión. Con conexión, siempre trae la versión más nueva.
  * Al cambiar la lista de archivos, sube el número de VERSION.
  */
-const VERSION = 'carta-astral-3';
+const VERSION = 'carta-astral-4';
 const ARCHIVOS = [
   "./",
   "index.html",
@@ -13,6 +13,7 @@ const ARCHIVOS = [
   "letras/Courgette-Regular.ttf",
   "iconos/icono-192.png",
   "iconos/icono-512.png",
+  "imagenes/codi.png",
   "js/app.js",
   "js/astro.js",
   "js/ciudades-mundo.js",

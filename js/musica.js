@@ -237,26 +237,86 @@
     tono(ctx, salida, { f: f * 2, t: t, dur: dur * 0.6, vol: vol * 0.18, ataque: 0.012, caida: dur * 0.6 });
   }
 
-  // Cuerda frotada (violín, viola, chelo): una onda rica en armónicos, suavizada con un filtro;
-  // dos voces casi iguales para que suene a grupo, y algo de vibrato en las notas largas.
-  function cuerda(ctx, salida, midi, t, dur, vol) {
-    const f = hz(midi), fin = t + dur, filtro = ctx.createBiquadFilter(), amp = ctx.createGain();
-    filtro.type = 'lowpass'; filtro.frequency.value = Math.min(f * 5, 4500); filtro.Q.value = 0.7;
+  // La caja de un violín (y de la sección de cuerdas): las resonancias de la madera, un hueco donde el
+  // violín real suena menos y un techo para los agudos ásperos. Todas las notas de la pista pasan por aquí.
+  function cajaDeCuerdas(ctx, salida) {
+    const entrada = ctx.createGain();
+    let ultimo = entrada;
+    [[280, 2, 5], [520, 1.4, 4], [1500, 1.2, -3], [2700, 1.1, 6]].forEach((r) => {
+      const p = ctx.createBiquadFilter();
+      p.type = 'peaking'; p.frequency.value = r[0]; p.Q.value = r[1]; p.gain.value = r[2];
+      ultimo.connect(p); ultimo = p;
+    });
+    const techo = ctx.createBiquadFilter();
+    techo.type = 'lowpass'; techo.frequency.value = 6500; techo.Q.value = 0.5;
+    ultimo.connect(techo); techo.connect(salida);
+    return entrada;
+  }
+
+  // Una nota de cuerda frotada. «voces»: 1 para el violín solista, con todo el detalle; más de 1 para una
+  // sección de la orquesta, más sencilla (dos instrumentos casi iguales que no entran a la vez), porque
+  // suena por debajo y así la música no pide demasiado al equipo.
+  function cuerda(ctx, salida, midi, t, dur, vol, voces) {
+    voces = voces || 1;
+    if (voces > 1) { seccion(ctx, salida, midi, t, dur, vol); return; }
+    const f = hz(midi) * Math.pow(2, (Math.random() * 6 - 3) / 1200); // afinación humana: ±3 centésimas
+    const corta = dur < 0.2, fin = t + dur, ataque = corta ? 0.008 : 0.05;
+    const amp = ctx.createGain(), brillo = ctx.createBiquadFilter();
+    // El arco «muerde» al empezar: más brillo y un pequeño golpe; luego el sonido se asienta.
+    brillo.type = 'lowpass'; brillo.Q.value = 0.6;
+    brillo.frequency.setValueAtTime(Math.min(f * 10, 9000), t);
+    brillo.frequency.exponentialRampToValueAtTime(Math.min(f * 6, 6000), t + (corta ? 0.05 : 0.15));
     amp.gain.setValueAtTime(0.0001, t);
-    amp.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.012, dur / 3));
-    amp.gain.setValueAtTime(vol, Math.max(t + 0.013, fin - 0.04));
-    amp.gain.exponentialRampToValueAtTime(0.0001, fin + 0.03);
-    filtro.connect(amp); amp.connect(salida);
-    [-6, 6].forEach((centesimas) => {
-      const osc = ctx.createOscillator();
+    amp.gain.exponentialRampToValueAtTime(vol, t + ataque);
+    if (corta) amp.gain.exponentialRampToValueAtTime(vol * 0.7, t + Math.max(ataque + 0.01, dur * 0.6));
+    amp.gain.setValueAtTime(corta ? vol * 0.7 : vol, Math.max(t + ataque + 0.011, fin - (corta ? 0.03 : 0.08)));
+    amp.gain.exponentialRampToValueAtTime(0.0001, fin + (corta ? 0.04 : 0.12));
+    brillo.connect(amp); amp.connect(salida);
+    // Vibrato: solo en las notas largas, y empieza un momento después del ataque.
+    let hondura = null;
+    if (dur > 0.25) {
+      const temblor = ctx.createOscillator();
+      hondura = ctx.createGain();
+      temblor.frequency.value = 5.4 + Math.random() * 0.8;
+      hondura.gain.setValueAtTime(0, t);
+      hondura.gain.setValueAtTime(0, t + 0.15);
+      hondura.gain.linearRampToValueAtTime(14, t + 0.45);
+      temblor.connect(hondura); temblor.start(t); temblor.stop(fin + 0.2);
+    }
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = f;
+    // El dedo entra un pelo bajo y sube a la nota.
+    osc.detune.setValueAtTime(-18, t);
+    osc.detune.linearRampToValueAtTime(0, t + 0.04);
+    if (hondura) hondura.connect(osc.detune);
+    osc.connect(brillo);
+    osc.start(t); osc.stop(fin + 0.2);
+    // El roce del arco: un soplo de ruido agudo al empezar y muy poco mientras la nota suena.
+    const roce = ctx.createBufferSource(), banda = ctx.createBiquadFilter(), fuerzaRoce = ctx.createGain();
+    roce.buffer = aire(ctx); roce.loop = true;
+    banda.type = 'bandpass'; banda.frequency.value = 3200 + Math.random() * 1500; banda.Q.value = 0.9;
+    fuerzaRoce.gain.setValueAtTime(0.0001, t);
+    fuerzaRoce.gain.exponentialRampToValueAtTime(vol * 0.25, t + 0.008);
+    fuerzaRoce.gain.exponentialRampToValueAtTime(vol * 0.04, t + 0.05);
+    fuerzaRoce.gain.setValueAtTime(vol * 0.04, Math.max(t + 0.051, fin - 0.03));
+    fuerzaRoce.gain.exponentialRampToValueAtTime(0.0001, fin + 0.05);
+    roce.connect(banda); banda.connect(fuerzaRoce); fuerzaRoce.connect(salida);
+    roce.start(t, Math.random()); roce.stop(fin + 0.1);
+  }
+
+  // Una nota de una sección de cuerdas: dos instrumentos un poco desafinados entre sí, sin roce de arco.
+  function seccion(ctx, salida, midi, t, dur, vol) {
+    const f = hz(midi), fin = t + dur, amp = ctx.createGain(), corta = dur < 0.2;
+    amp.gain.setValueAtTime(0.0001, t);
+    amp.gain.exponentialRampToValueAtTime(vol, t + (corta ? 0.01 : 0.05));
+    amp.gain.setValueAtTime(vol, Math.max(t + 0.06, fin - 0.04));
+    amp.gain.exponentialRampToValueAtTime(0.0001, fin + 0.06);
+    amp.connect(salida);
+    [-8, 7].forEach((centesimas, k) => {
+      const osc = ctx.createOscillator(), t0 = t + k * 0.006;
       osc.type = 'sawtooth'; osc.frequency.value = f; osc.detune.value = centesimas;
-      if (dur > 0.3) {
-        const temblor = ctx.createOscillator(), hondura = ctx.createGain();
-        temblor.frequency.value = 5.5; hondura.gain.value = 9;
-        temblor.connect(hondura); hondura.connect(osc.detune);
-        temblor.start(t); temblor.stop(fin + 0.1);
-      }
-      osc.connect(filtro); osc.start(t); osc.stop(fin + 0.1);
+      osc.connect(amp); osc.start(t0); osc.stop(fin + 0.1);
     });
   }
 
@@ -444,9 +504,10 @@
     },
 
     tormenta: {
-      nombre: 'Tormenta del Verano (Vivaldi)',
+      nombre: 'Tormenta del Verano (Vivaldi) · para Lilith y el lado oscuro',
+      nota: 'Se recomienda escucharla mientras lees a Lilith y el lado oscuro.',
       crear(ctx, salida) {
-        // Antonio Vivaldi, «El verano» de Las cuatro estaciones, tercer movimiento, compases 1 a 28 (1725,
+        // Antonio Vivaldi, «El verano» de Las cuatro estaciones, tercer movimiento, compases 1 a 31 (1725,
         // dominio público). Notas de la edición del Mutopia Project (licencia CC BY-SA). Unidad: semicorchea.
         const ev = [], SEMI = 0.1, BARRA = 12;
         const VIOLIN = [
@@ -457,24 +518,54 @@
           'G4*12', 'G4 D6 C6 Bb5 A5 G5 F#5 E5 D5 C5 Bb4 A4', 'G4*12', 'D5 G4 G4 G4 D5 G4 G4 G4 D5 G4 G4 G4',
           'D4 A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2', 'r A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2',
           'r Bb4 C5 D5 Eb5 F#5 G5 A5 Bb5:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2',
-          'r A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2', 'r Bb4 C5 D5 Eb5 F#5 G5 A5 Bb5:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2'
+          'r A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2', 'r Bb4 C5 D5 Eb5 F#5 G5 A5 Bb5:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2',
+          // Compases 29 a 31: arpegios que bajan hasta sol, y un acorde final para cerrar antes de repetir.
+          'Bb5 G5 D5 Bb4 Bb5 G5 D5 Bb4 Bb5 G5 D5 Bb4', 'D5 Bb4 G4 D4 D5 Bb4 G4 D4 D5 Bb4 G4 D4',
+          'G4 D4 Bb3 G3 G4 D4 Bb3 G3 G4 D4 Bb3 G3', 'G3+Bb3+D4+G4:10 r:2'
         ];
         const BAJO = ['r:12', 'G2:2*6', 'G2:2*6', 'C3:2*6', 'C3:2*6', 'Eb2:2*6', 'Eb2:2*6', 'G2:2*6', 'G2:2*6', 'G2:2*6',
-          'G2*4 D3 G2*3 D3 G2*3'].concat(Array(8).fill('D2 D3 D2 D3 D2 D3 D2 D3 D2 D3 D2 D3'));
+          'G2*4 D3 G2*3 D3 G2*3'].concat(Array(8).fill('D2 D3 D2 D3 D2 D3 D2 D3 D2 D3 D2 D3'),
+          ['G2:2*6', 'G2:2*6', 'G2:2*6', 'G2+D3:10 r:2']);
+        const caja = cajaDeCuerdas(ctx, salida);
         let p = 0;
         VIOLIN.forEach((compas, k) => {
-          const fin = voz(ev, compas, p, 0.05, { violin: true });
+          const fin = voz(ev, compas, p, 0.08, { voces: 1 });
           // Al principio toda la orquesta toca el trémolo al unísono: violas y chelos una y dos octavas abajo.
           if (k < 9) {
-            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 1)), p, 0.035);
-            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 2)), p, 0.045);
+            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 1)), p, 0.028, { voces: 2 });
+            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 2)), p, 0.036, { voces: 2 });
           } else {
-            voz(ev, BAJO[k - 9], p, 0.05);
+            voz(ev, BAJO[k - 9], p, 0.045, { voces: 2 });
           }
           p = fin;
         });
-        return secuencia(ctx, ev, SEMI, p + 6, (e, t) =>
-          e.m.forEach((m) => cuerda(ctx, salida, m, t, e.d * SEMI * (e.violin && e.d > 1 ? 0.95 : 0.9), e.v)));
+        return secuencia(ctx, ev, SEMI, p + 14, (e, t) =>
+          e.m.forEach((m) => cuerda(ctx, caja, m, t, e.d * SEMI * (e.d > 1 ? 0.95 : 0.9), e.v, e.voces)));
+      }
+    },
+
+    asturias: {
+      nombre: 'Asturias (Albéniz)',
+      crear(ctx, salida) {
+        // Isaac Albéniz, «Asturias (Leyenda)», Chants d'Espagne op. 232 n.º 1 (1892, dominio público), compases
+        // 1 a 14, leídos de la primera edición (IMSLP). La mano izquierda canta la melodía y la derecha repite
+        // un re en cada contratiempo, como el famoso arpegio de la versión para guitarra. Unidad: semicorchea.
+        const ev = [], SEMI = 0.125;
+        const IZQUIERDA = [
+          'G3 D4 Eb4 C4 D4 Bb3', 'G3 D4 Eb4 C4 D4 Bb3', 'G3 D4 Eb4 C4 D4 Bb3', 'C4 A3 Bb3 C4 A3 Bb3',
+          'G3 D4 Eb4 C4 D4 Bb3', 'G3 D4 Eb4 C4 D4 Bb3', 'G3 D4 Eb4 C4 D4 Bb3', 'C4 A3 Bb3 G3 F3 Eb3',
+          'D3 D4 Eb4 C4 D4 A3', 'D3 D4 Eb4 C4 D4 A3', 'D3 A3 C4 D4 Eb4 F4', 'D4 Eb4 C4 D4 Bb3 A3',
+          'D3 D4 Eb4 C4 D4 A3', 'D3 D4 Eb4 C4 D4 A3'
+        ];
+        IZQUIERDA.forEach((compas, k) => {
+          compas.split(' ').forEach((n, i) => {
+            // «Marcato il canto»: la primera nota de cada compás se marca más, y la de cada pulso un poco.
+            ev.push({ b: k * 12 + i * 2, m: [nota(n)], v: i === 0 ? 0.15 : i % 2 === 0 ? 0.115 : 0.1 });
+            ev.push({ b: k * 12 + i * 2 + 1, m: [nota('D4')], v: 0.062 });
+          });
+        });
+        return secuencia(ctx, ev, SEMI, IZQUIERDA.length * 12, (e, t) =>
+          e.m.forEach((m) => piano(ctx, salida, m, t, 0.45, e.v)));
       }
     },
 
@@ -642,6 +733,7 @@
   const lista = document.getElementById('musica-melodia'), barra = document.getElementById('musica-volumen');
   const archivos = document.getElementById('musica-archivos'), aviso = document.getElementById('musica-aviso');
   const propia = document.getElementById('musica-propia'), casilla432 = document.getElementById('musica-432');
+  const recomendacion = document.getElementById('musica-recomendacion');
 
   let guardado = null;
   try { guardado = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) { /* nada guardado */ }
@@ -674,6 +766,7 @@
       ? 'Sonará en cuanto hagas clic en cualquier parte.'
       : estado.melodia === 'propia' && propias.length ? 'Suena: ' + propias.map((p) => p.nombre).join(', ') : '';
     propia.hidden = estado.melodia !== 'propia';
+    recomendacion.textContent = (PISTAS[estado.melodia] && PISTAS[estado.melodia].nota) || '';
     casilla432.checked = estado.a432;
   }
 

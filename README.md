@@ -128,7 +128,7 @@ El reproductor está en el menú, debajo de «Mis datos». La música empieza en
 y la app recuerda esa elección. El botón de al lado abre la melodía y el volumen. Los navegadores no
 dejan sonar nada hasta el primer clic, así que a veces arranca al tocar la página.
 
-Las siete melodías no son archivos: la app las genera nota por nota, así que no pesan, y todas son
+Las ocho melodías no son archivos: la app las genera nota por nota, así que no pesan, y todas son
 de dominio público. Todas están afinadas con el la en 432 Hz.
 
 1. **Gayatri mantra (flauta):** su entonación védica tradicional de tres notas, con flauta y tanpura.
@@ -137,8 +137,9 @@ de dominio público. Todas están afinadas con el la en 432 Hz.
 4. **Claro de luna (Beethoven):** los primeros compases de la sonata.
 5. **Gymnopédie n.º 1 (Satie):** la pieza completa, en piano suave.
 6. **Tormenta del Verano (Vivaldi):** el comienzo del tercer movimiento de «El verano», con violín
-   y orquesta de cuerdas.
-7. **Noche serena:** acordes lentos con algún destello agudo.
+   y orquesta de cuerdas. Se recomienda escucharla mientras lees a Lilith y el lado oscuro.
+7. **Asturias (Albéniz):** el tema del principio, en piano, como lo escribió Albéniz.
+8. **Noche serena:** acordes lentos con algún destello agudo.
 
 Con **Mi propia música…** puedes elegir canciones de tu equipo. La app las recuerda en el navegador
 de ese equipo (no se suben a ningún lado) para que suenen la próxima vez, y con **Afinar mi música a
@@ -225,6 +226,7 @@ Partes que conservan su propia licencia:
 - **Letra Courgette:** Sorkin Type Co, SIL Open Font License 1.1 (`letras/OFL.txt`).
 - **Partituras de Satie y Vivaldi:** ediciones del Mutopia Project (https://www.mutopiaproject.org); la de
   Satie es de dominio público y la de Vivaldi tiene licencia Creative Commons Atribución-CompartirIgual 3.0.
+- **Partitura de Albéniz:** primera edición de 1892, de dominio público, en IMSLP (https://imslp.org).
 - **Texto de la licencia GPL:** Free Software Foundation.
 
 ## Donaciones

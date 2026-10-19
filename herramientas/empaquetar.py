@@ -11,7 +11,7 @@ Quien lo reciba lo descomprime y abre «Abrir Carta Astral.bat» (Windows),
 import os
 import zipfile
 
-VERSION = "0.5"
+VERSION = "0.5.1"
 # En GitHub el archivo de presentación debe llamarse README.md; dentro del zip va como LÉEME.md.
 RENOMBRAR = {"README.md": "LÉEME.md"}
 INCLUIR = ["index.html", "manifest.webmanifest", "sw.js", "LICENSE", "README.md",

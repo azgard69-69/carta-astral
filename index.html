@@ -54,6 +54,11 @@
       <label for="musica-volumen">Volumen</label>
       <input id="musica-volumen" type="range" min="0" max="100" value="50">
       <span class="nota">Todas las melodías están afinadas en 432 Hz.</span>
+      <div id="musica-propia" class="musica-propia" hidden>
+        <label class="casilla-musica"><input id="musica-432" type="checkbox" checked> Afinar mi música a 432 Hz</label>
+        <button type="button" id="musica-cambiar">Cambiar canciones…</button>
+        <span class="nota">Tus canciones se guardan solo en este equipo, para que suenen la próxima vez.</span>
+      </div>
     </div>
     <input id="musica-archivos" type="file" accept="audio/*" multiple hidden>
     <span id="musica-aviso" class="nota" aria-live="polite"></span>

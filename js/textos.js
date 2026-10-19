@@ -280,6 +280,91 @@ window.TEXTOS = {
     oposicion: 'Vean a la otra persona como su complemento, no como su rival: cada quien aporta lo que le falta a quien tiene al lado.'
   },
 
+  // Para explicar mejor cada nombre: la cultura de la que viene, su número y su inicial.
+  nombre: {
+    // Primera palabra del origen (sin acentos) → grupo de culturas, cuando no tiene texto propio.
+    culturaDe: {
+      anglosajon: 'germanico', nordico: 'germanico', escandinavo: 'germanico', danes: 'germanico',
+      normando: 'germanico', neerlandes: 'germanico', irlandes: 'celta', gaelico: 'celta', gales: 'celta', escoces: 'celta',
+      breton: 'celta', catalan: 'romance', gallego: 'romance', provenzal: 'romance', frances: 'romance', italiano: 'romance',
+      portugues: 'romance', ruso: 'eslavo', polaco: 'eslavo', hungaro: 'europa', rumano: 'europa', tupi: 'guarani',
+      egipcio: 'oriente', babilonio: 'oriente', fenicio: 'oriente', turco: 'oriente'
+    },
+    culturas: {
+      hebreo: 'Viene del hebreo, la lengua de la Biblia: casi todos sus nombres son pequeñas frases sobre Dios o sobre quien nace.',
+      arameo: 'Viene del arameo, la lengua que se hablaba en tiempos de Jesús.',
+      griego: 'Viene del griego antiguo: nombres de héroes, dioses y virtudes que el cristianismo hizo populares en todo el mundo.',
+      latin: 'Viene del latín de la antigua Roma: muchos eran nombres de familias romanas, de virtudes o de santos de los primeros siglos.',
+      germanico: 'Viene de los pueblos germánicos (godos, francos, sajones…), que llegaron al sur de Europa hace unos 1.500 años; sus nombres suelen unir dos palabras de fuerza, fama, protección o nobleza.',
+      arabe: 'Viene del árabe, que convivió con el castellano durante ocho siglos en la península ibérica y dejó miles de palabras y nombres.',
+      ingles: 'Es un nombre de la tradición inglesa, hoy común en todo el mundo.',
+      aleman: 'Es una forma alemana o austriaca, muchas veces cariñosa, de un nombre más antiguo.',
+      celta: 'Viene de las lenguas celtas de Irlanda, Escocia, Gales o Bretaña: nombres antiguos ligados a la naturaleza, a los héroes y a los santos de esas tierras.',
+      vasco: 'Viene del euskera, la lengua vasca, una de las más antiguas de Europa: muchos de sus nombres son lugares, santuarios o elementos de la naturaleza.',
+      romance: 'Viene de una lengua hermana del español, nacida también del latín.',
+      espanol: 'Es un nombre de tradición hispana: muchos nacen de advocaciones de la Virgen, de fiestas religiosas o de palabras del propio idioma.',
+      persa: 'Viene del persa antiguo, la lengua del Irán de la Antigüedad, la tierra de los Reyes Magos.',
+      sanscrito: 'Viene del sánscrito, la lengua sagrada de la India.',
+      oriente: 'Viene de las antiguas culturas de Oriente y llegó al español a través de la Biblia, de la historia o del comercio.',
+      eslavo: 'Viene de las lenguas eslavas de Europa del este.',
+      europa: 'Viene de Europa del este.',
+      nahuatl: 'Viene del náhuatl, la lengua de los mexicas, que hoy hablan cerca de dos millones de personas en México. Sus nombres hablan de flores, astros, animales y dioses.',
+      maya: 'Viene de las lenguas mayas, que se hablan desde hace miles de años en el sureste de México y en Centroamérica. Muchos de sus nombres honran a sus dioses y a la naturaleza.',
+      quechua: 'Viene del quechua, la lengua de los incas, que hoy hablan millones de personas en los Andes. Sus nombres honran al sol, la luna, la tierra y los animales sagrados.',
+      aimara: 'Viene del aimara, la lengua de los pueblos del lago Titicaca, entre Bolivia, Perú y Chile.',
+      mapuche: 'Viene del mapudungun, la lengua del pueblo mapuche, en el sur de Chile y Argentina. Sus nombres suelen hablar de la naturaleza y del valor.',
+      guarani: 'Viene del guaraní, lengua oficial de Paraguay que hablan millones de personas; sus nombres suelen venir de la naturaleza y de sus leyendas.',
+      zapoteco: 'Viene del zapoteco, la lengua de los pueblos de Oaxaca, en México.',
+      purepecha: 'Viene del purépecha, la lengua del pueblo de Michoacán, en México.',
+      taino: 'Viene del taíno, la lengua de los pueblos del Caribe que recibieron a Colón.'
+    },
+    // La suma de las letras del nombre (numerología pitagórica), en clave de nombre.
+    numeros: {
+      1: 'Un nombre de pionero: da fuerza para decidir, empezar y destacar. El reto es no querer hacerlo todo por tu cuenta.',
+      2: 'Un nombre de unión: da tacto, paciencia y don para acompañar. El reto es no olvidarte de ti por agradar.',
+      3: 'Un nombre de expresión: da alegría, creatividad y facilidad de palabra. El reto es terminar lo que empiezas.',
+      4: 'Un nombre de constructor: da orden, constancia y confianza. El reto es soltar el control y el exceso de trabajo.',
+      5: 'Un nombre de aventura: da curiosidad, ingenio y ganas de libertad. El reto es la constancia.',
+      6: 'Un nombre de hogar: da ternura, responsabilidad y sentido de la belleza. El reto es no cargar con todo.',
+      7: 'Un nombre de búsqueda: da profundidad, intuición y gusto por el conocimiento. El reto es abrirte a los demás.',
+      8: 'Un nombre de logro: da ambición, fuerza y buen manejo de lo material. El reto es no medirlo todo por el éxito.',
+      9: 'Un nombre de entrega: da compasión, generosidad y una mirada amplia. El reto es saber cerrar ciclos y soltar.',
+      11: 'Número maestro: un nombre de inspiración, con mucha intuición y sensibilidad. El reto es cuidar los nervios.',
+      22: 'Número maestro: un nombre de grandes obras, que une los sueños con el sentido práctico. El reto es no exigirte de más.',
+      33: 'Número maestro: un nombre de servicio y guía, con un gran corazón. El reto es no olvidarte de ti.'
+    },
+    // La inicial, «la piedra angular» del nombre: cómo se encara la vida.
+    iniciales: {
+      A: 'Iniciativa e independencia: te gusta empezar las cosas y abrir camino.',
+      B: 'Sensibilidad y cooperación: das mucho valor a la pareja y a la armonía.',
+      C: 'Expresión y alegría: comunicas con facilidad y tienes chispa creativa.',
+      D: 'Firmeza y método: construyes con esfuerzo y te gusta lo seguro.',
+      E: 'Curiosidad y movimiento: buscas libertad, cambios y experiencias nuevas.',
+      F: 'Responsabilidad y cariño: te importa cuidar a los tuyos y tu hogar.',
+      G: 'Introspección y sabiduría: piensas a fondo y confías en tu intuición.',
+      H: 'Ambición y capacidad de mando: sabes manejar recursos y metas grandes.',
+      I: 'Sensibilidad y compasión: sientes mucho y te mueve ayudar a otros.',
+      J: 'Ingenio y deseo de ir por delante: tienes ideas propias y las defiendes.',
+      K: 'Intuición fuerte y mucha energía: inspiras, aunque a veces te exiges demasiado.',
+      L: 'Creatividad y palabra: te expresas bien y disfrutas de la vida social.',
+      M: 'Trabajo y constancia: eres de fiar y construyes paso a paso.',
+      N: 'Inquietud y originalidad: te atrae lo nuevo y te aburre la rutina.',
+      Ñ: 'Libertad y cambio: necesitas moverte, probar y descubrir.',
+      O: 'Sentido del deber y del hogar: proteges a quienes quieres y valoras la lealtad.',
+      P: 'Mente analítica y reservada: buscas el sentido de las cosas.',
+      Q: 'Magnetismo y originalidad: sueles destacar sin buscarlo.',
+      R: 'Energía y entrega: te mueven los ideales y el deseo de ayudar.',
+      S: 'Encanto y emoción: sientes con intensidad y vives los cambios a fondo.',
+      T: 'Sensibilidad y espíritu de equipo: buscas la paz y te afecta el ambiente.',
+      U: 'Generosidad y creatividad: te gusta compartir y expresarte.',
+      V: 'Visión y constancia: te propones metas grandes y las sostienes.',
+      W: 'Expresión y búsqueda de libertad: necesitas moverte y comunicar.',
+      X: 'Sensualidad y misterio: tienes un magnetismo difícil de explicar.',
+      Y: 'Independencia y búsqueda interior: valoras tu libertad y tu espacio.',
+      Z: 'Optimismo y determinación: tienes fe en ti y en lo que emprendes.'
+    }
+  },
+
   // Calendario personal: fechas importantes de los próximos doce meses.
   calendario: {
     // Tránsitos con nombre propio. La clave es «astro-aspecto-punto natal».

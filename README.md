@@ -2,7 +2,7 @@
 
 Aplicación que calcula tu carta natal y la explica en lenguaje claro: tríada (Sol, Luna y
 Ascendente), decanatos, lado oscuro de cada signo, Lilith, Quirón, nodos lunares, planetas, casas,
-aspectos, significado del nombre y numerología. Además: retorno solar (tu año) y lunar (tu mes),
+aspectos, significado del nombre (origen, cultura, número e inicial) y numerología. Además: retorno solar (tu año) y lunar (tu mes),
 compatibilidad con otra persona y un calendario con tus fechas importantes. Dibuja la rueda al
 estilo del reloj astronómico de Praga, imprime un informe completo, puede leerte cada sección en voz
 alta y tiene música de fondo.
@@ -137,8 +137,11 @@ derechos de autor. Todas están afinadas con el la en 432 Hz.
 4. **Claro de luna (Beethoven):** los primeros compases de la sonata.
 5. **Noche serena:** acordes lentos con algún destello agudo.
 
-Con **Mi propia música…** puedes elegir canciones de tu equipo; no se copian ni se guardan dentro
-de la app.
+Con **Mi propia música…** puedes elegir canciones de tu equipo. La app las recuerda en el navegador
+de ese equipo (no se suben a ningún lado) para que suenen la próxima vez, y con **Afinar mi música a
+432 Hz** las toca un 1,8 % más despacio, sin corregir el tono, para pasarlas de 440 a 432 Hz. Así
+puedes escuchar en 432 Hz canciones con derechos de autor que no pueden ir dentro de un programa
+libre, como el «Hallelujah» de Leonard Cohen.
 
 ## Qué hay en cada carpeta
 
@@ -153,9 +156,9 @@ de la app.
 | `js/numerologia.js` | Camino de vida, expresión y alma. |
 | `js/guia.js` | Los textos de la guía, convertidos para la app. **No se edita a mano.** |
 | `js/textos.js` | Textos en lenguaje llano de planetas, casas, aspectos, nodos, Quirón, retornos, compatibilidad y calendario. Borrador; se edita a mano. |
-| `js/nombres.js` | Significado de unos 1.240 nombres (español, inglés, náhuatl, maya y otros) y sus variantes de escritura. Borrador; se edita a mano. |
+| `js/nombres.js` | Significado de unos 1.340 nombres (español, inglés y precolombinos: náhuatl, maya, purépecha, zapoteco, quechua, aimara, mapuche, guaraní y taíno) y sus variantes de escritura. Borrador; se edita a mano. |
 | `js/ciudades.js` | Lista propia de 119 ciudades, con sus nombres en español. |
-| `js/ciudades-mundo.js` | Unas 170.000 ciudades y pueblos del mundo de más de 1.000 habitantes (GeoNames). **No se edita a mano.** |
+| `js/ciudades-mundo.js` | Unas 236.000 ciudades y pueblos del mundo de más de 500 habitantes (GeoNames). **No se edita a mano.** |
 | `js/app.js` | Une el formulario, los cálculos y los textos. |
 | `letras/` | La letra cursiva de los títulos (Courgette) y su licencia. |
 | `iconos/` | El icono de la app. |

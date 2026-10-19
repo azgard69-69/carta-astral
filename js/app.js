@@ -61,7 +61,7 @@
 
   // ---------- Lugar ----------
   // Hay dos listas: la propia (js/ciudades.js, con nombres en español) y la mundial de GeoNames
-  // (js/ciudades-mundo.js, unas 170.000 ciudades y pueblos de más de 1.000 habitantes), que solo se
+  // (js/ciudades-mundo.js, unas 236.000 ciudades y pueblos de más de 500 habitantes), que solo se
   // carga al usar el campo de lugar.
 
   const etiquetaCiudad = (c) => c[0] + ', ' + c[1];
@@ -82,7 +82,7 @@
       const clave = (t) => /[^ -~]/.test(t) ? Num.normalizar(t) : t.toLowerCase();
       const claves = lineas.map((l) => clave(l.slice(0, l.indexOf('|'))));
       // Todos los nombres en un solo texto, uno por renglón: buscar ahí con indexOf es mucho más
-      // rápido que mirar las 170.000 líneas una por una en cada tecla.
+      // rápido que mirar las 236.000 líneas una por una en cada tecla.
       const inicios = new Int32Array(claves.length);
       let pos = 1;
       claves.forEach((c, i) => { inicios[i] = pos; pos += c.length + 1; });
@@ -405,19 +405,35 @@
   const PARTICULAS = ['de', 'del', 'la', 'las', 'los', 'y', 'e'];
   const ABREVIATURAS = { ma: 'María', 'mª': 'María' };
 
-  // Significado de cada nombre de pila (María José → los dos).
+  // Cada nombre de pila (María José → los dos): origen, significado, cultura de la que viene,
+  // su número y su inicial. Si no se conoce su significado, se dan igual el número y la inicial.
   function significadosNombre(nombre) {
-    const hallados = [], faltan = [];
-    String(nombre || '').replace(/[.,;]/g, ' ').trim().split(/\s+/).filter((w) => w && !PARTICULAS.includes(Num.normalizar(w))).forEach((w) => {
-      w = ABREVIATURAS[Num.normalizar(w)] || w;
-      const n = mayuscula(w.toLowerCase()), dato = buscarNombre(w);
-      if (dato) hallados.push(`${n}${dato[2] ? ` (variante de ${dato[2]})` : ''}: ${dato[0]}. ${dato[1]}`);
-      else faltan.push(n);
-    });
-    if (hallados.length && faltan.length) {
-      hallados.push(`Aún no tengo el significado de ${faltan.join(' ni de ')}.`);
-    }
-    return hallados;
+    return String(nombre || '').replace(/[.,;]/g, ' ').trim().split(/\s+/)
+      .filter((w) => w && !PARTICULAS.includes(Num.normalizar(w))).map((w) => {
+        w = ABREVIATURAS[Num.normalizar(w)] || w;
+        const dato = buscarNombre(w), n = mayuscula(w.toLowerCase());
+        return {
+          nombre: n, base: dato ? dato[2] : null, origen: dato ? dato[0] : null, significado: dato ? dato[1] : null,
+          cultura: dato ? culturaDe(dato[0]) : '', numero: Num.expresion(w), inicial: Num.normalizar(w).charAt(0).toUpperCase()
+        };
+      });
+  }
+
+  // Explicación de la cultura de un origen («Germánico (alb)» → la de los pueblos germánicos).
+  function culturaDe(origen) {
+    const k = Num.normalizar(origen.split(/[\s,(]/)[0]);
+    return TEXTOS.nombre.culturas[TEXTOS.nombre.culturaDe[k] || k] || '';
+  }
+
+  // Un nombre explicado, para la tarjeta de la carta y para el informe impreso.
+  function htmlNombre(x) {
+    const inicial = TEXTOS.nombre.iniciales[x.inicial], numero = TEXTOS.nombre.numeros[x.numero];
+    return `<div class="nombre-detalle"><h3>${esc(x.nombre)}${x.base ? ` <small>variante de ${esc(x.base)}</small>` : ''}</h3>` +
+      (x.significado
+        ? `<p><b>Origen.</b> ${esc(x.origen)}.${x.cultura ? ' ' + esc(x.cultura) : ''}</p><p><b>Significado.</b> ${esc(x.significado)}</p>`
+        : '<p>Aún no tengo el significado de este nombre, pero su número y su inicial sí se leen.</p>') +
+      (numero ? `<p><b>Su número, el ${x.numero}.</b> ${esc(numero)}</p>` : '') +
+      (inicial ? `<p><b>Su inicial, la ${x.inicial}.</b> ${esc(inicial)}</p>` : '') + '</div>';
   }
 
   // Significado del nombre y los tres números. Devuelve los datos; cada vista los pinta a su manera.
@@ -440,9 +456,7 @@
     const n = datosNombre(d);
     let cab;
     if (n.completo) {
-      cab = `<p class="nombre-grande">${esc(n.completo)}</p>` + (n.significados.length
-        ? n.significados.map((t) => `<p class="subtitulo">${esc(t)}</p>`).join('')
-        : (d.nombre ? '<p class="subtitulo">Aún no tengo el significado de este nombre; sus números sí se calculan.</p>' : ''));
+      cab = `<p class="nombre-grande">${esc(n.completo)}</p>` + n.significados.map(htmlNombre).join('');
       if (!d.apellidos) cab += '<p class="nota">Añade tus apellidos en «Mis datos» para que expresión y alma se calculen con tu nombre completo.</p>';
     } else {
       cab = '<p class="subtitulo">Escribe tu nombre en «Mis datos» para ver su significado y sus números.</p>';
@@ -1307,8 +1321,7 @@
 
     // --- Nombre y numerología ---
     h += '<h2>Tu nombre y tus números</h2>';
-    if (n.significados.length) h += `<p><b>Tu nombre.</b> ${n.significados.map(esc).join(' ')}</p>`;
-    else if (d.nombre) h += '<p>Aún no tengo el significado de este nombre; sus números sí se calculan.</p>';
+    h += n.significados.map(htmlNombre).join('');
     h += '<div class="inf-numeros">' + n.numeros.map((x) => `<div class="inf-bloque"><span class="inf-cifra">${x[1] === null ? '—' : x[1]}</span>
       <b>${x[0]}</b><p>${x[2]}${x[1] === null ? ' Falta el nombre para calcularlo.' : ' ' + Num.SIGNIFICADOS[x[1]]}</p></div>`).join('') + '</div>' +
       '<p class="inf-nota">Numerología pitagórica. Los números 11, 22 y 33 se consideran maestros y no se reducen.</p>';

@@ -358,7 +358,7 @@
 
   // ---------- Reproductor ----------
 
-  const estado = { melodia: 'gayatri', volumen: 0.5, encendida: false };
+  const estado = { melodia: 'gayatri', volumen: 0.5, encendida: false, a432: true };
   let ctx = null, maestro = null, reloj = null, audio = null, propias = [], indice = 0, desdeElPrincipio = true;
 
   // El volumen del control (0 a 1) se traduce a la fuerza real del sonido.
@@ -384,7 +384,54 @@
     indice = i;
     audio.src = propias[i].url;
     audio.volume = Math.min(1, estado.volumen);
-    audio.play().catch(() => { /* el navegador no dejó sonar */ });
+    afinar();
+    sonarPropia();
+  }
+
+  // Si el navegador no deja sonar todavía, se intenta de nuevo con el primer clic o tecla.
+  function sonarPropia() {
+    audio.play().catch(() => {
+      if (g.Musica.esperarClic) g.Musica.esperarClic();
+    });
+  }
+
+  // La música de cada quien suele estar afinada en 440 Hz. Tocada un 1,8 % más despacio y sin corregir
+  // el tono, queda en 432 Hz, como las melodías de la app.
+  function afinar() {
+    if (!audio) return;
+    const conservar = !estado.a432;
+    audio.preservesPitch = conservar;
+    audio.mozPreservesPitch = conservar;
+    audio.webkitPreservesPitch = conservar;
+    audio.defaultPlaybackRate = audio.playbackRate = estado.a432 ? 432 / 440 : 1;
+  }
+
+  // Las canciones propias se guardan en el navegador de este equipo (no se suben a ningún lado),
+  // para que sigan ahí la próxima vez que se abra la app.
+  function abrirBase() {
+    return new Promise((ok, mal) => {
+      if (!g.indexedDB) { mal(new Error('sin IndexedDB')); return; }
+      const pedido = g.indexedDB.open('cartaAstral', 1);
+      pedido.onupgradeneeded = () => pedido.result.createObjectStore('canciones');
+      pedido.onsuccess = () => ok(pedido.result);
+      pedido.onerror = () => mal(pedido.error);
+    });
+  }
+
+  function guardarCanciones(lista) {
+    return abrirBase().then((db) => new Promise((ok) => {
+      const tx = db.transaction('canciones', 'readwrite');
+      tx.objectStore('canciones').put(lista.map((a) => ({ nombre: a.name, datos: a })), 'lista');
+      tx.oncomplete = tx.onerror = () => { db.close(); ok(); };
+    })).catch(() => { /* sin almacenamiento: valen solo esta vez */ });
+  }
+
+  function leerCanciones() {
+    return abrirBase().then((db) => new Promise((ok) => {
+      const pedido = db.transaction('canciones').objectStore('canciones').get('lista');
+      pedido.onsuccess = () => { db.close(); ok(pedido.result || []); };
+      pedido.onerror = () => { db.close(); ok([]); };
+    })).catch(() => []);
   }
 
   function encender() {
@@ -392,7 +439,7 @@
     if (estado.melodia === 'propia') {
       if (!propias.length) return false;
       // Si estaba en pausa, sigue donde se quedó; si se eligieron canciones nuevas, empieza por la primera.
-      if (audio && audio.src && !desdeElPrincipio) audio.play().catch(() => { /* el navegador no dejó sonar */ });
+      if (audio && audio.src && !desdeElPrincipio) sonarPropia();
       else tocarPropia(0);
       desdeElPrincipio = false;
     } else {
@@ -416,10 +463,11 @@
     if (audio) audio.volume = Math.min(1, v);
   }
 
-  function cargarPropias(archivos) {
+  function cargarPropias(archivos, guardarlas) {
     propias.forEach((p) => URL.revokeObjectURL(p.url));
     propias = Array.from(archivos).map((a) => ({ nombre: a.name, url: URL.createObjectURL(a) }));
     desdeElPrincipio = true;
+    if (guardarlas) guardarCanciones(Array.from(archivos));
   }
 
   // Para pruebas: genera unos segundos de una melodía sin que suene y mide su volumen.
@@ -443,10 +491,12 @@
   if (!boton) return;
   const lista = document.getElementById('musica-melodia'), barra = document.getElementById('musica-volumen');
   const archivos = document.getElementById('musica-archivos'), aviso = document.getElementById('musica-aviso');
+  const propia = document.getElementById('musica-propia'), casilla432 = document.getElementById('musica-432');
 
   let guardado = null;
   try { guardado = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) { /* nada guardado */ }
-  if (guardado && PISTAS[guardado.melodia]) estado.melodia = guardado.melodia;
+  if (guardado && (PISTAS[guardado.melodia] || guardado.melodia === 'propia')) estado.melodia = guardado.melodia;
+  if (guardado && guardado.a432 === false) estado.a432 = false;
   if (guardado && guardado.volumen >= 0 && guardado.volumen <= 1) estado.volumen = guardado.volumen;
   // La música empieza encendida, salvo que la persona la haya pausado la última vez.
   const quiereMusica = !(guardado && guardado.encendida === false);
@@ -454,7 +504,8 @@
   const guardar = () => {
     try {
       localStorage.setItem(CLAVE, JSON.stringify({
-        melodia: PISTAS[estado.melodia] ? estado.melodia : 'gayatri', volumen: estado.volumen, encendida: estado.encendida
+        melodia: PISTAS[estado.melodia] || estado.melodia === 'propia' ? estado.melodia : 'gayatri',
+        volumen: estado.volumen, encendida: estado.encendida, a432: estado.a432
       }));
     } catch (e) { /* sin almacenamiento */ }
   };
@@ -468,9 +519,12 @@
       `<span class="musica-texto">${estado.encendida ? 'Pausar música' : 'Poner música'}</span>`;
     boton.setAttribute('aria-pressed', String(estado.encendida));
     lista.value = estado.melodia;
-    aviso.textContent = estado.encendida && ctx && ctx.state === 'suspended'
+    const enEspera = estado.encendida && ((ctx && ctx.state === 'suspended') || (estado.melodia === 'propia' && audio && audio.paused));
+    aviso.textContent = enEspera
       ? 'Sonará en cuanto hagas clic en cualquier parte.'
       : estado.melodia === 'propia' && propias.length ? 'Suena: ' + propias.map((p) => p.nombre).join(', ') : '';
+    propia.hidden = estado.melodia !== 'propia';
+    casilla432.checked = estado.a432;
   }
 
   // Los navegadores no dejan sonar nada hasta el primer clic o tecla: si la música
@@ -479,7 +533,13 @@
     document.removeEventListener('pointerdown', despertar);
     document.removeEventListener('keydown', despertar);
     if (ctx && ctx.state === 'suspended') ctx.resume().then(pintar, pintar);
+    if (estado.encendida && estado.melodia === 'propia' && audio && audio.paused) audio.play().then(pintar, pintar);
   }
+  g.Musica.esperarClic = () => {
+    document.addEventListener('pointerdown', despertar);
+    document.addEventListener('keydown', despertar);
+    pintar();
+  };
 
   lista.innerHTML = Object.keys(PISTAS).map((id) => `<option value="${id}">${PISTAS[id].nombre}</option>`).join('') +
     '<option value="propia">Mi propia música…</option>';
@@ -490,6 +550,21 @@
   }
   pintar();
   if (ctx) ctx.addEventListener('statechange', pintar);
+  // Si la última vez sonaba tu propia música, se recupera del navegador y vuelve a sonar.
+  if (estado.melodia === 'propia') {
+    leerCanciones().then((guardadas) => {
+      if (!guardadas.length) {
+        estado.melodia = 'gayatri';
+        if (quiereMusica && encender() && ctx && ctx.state !== 'running') g.Musica.esperarClic();
+        pintar();
+        return;
+      }
+      cargarPropias(guardadas.map((x) => x.datos), false);
+      propias.forEach((p, i) => { p.nombre = guardadas[i].nombre; });
+      if (quiereMusica) encender();
+      pintar();
+    });
+  }
 
   boton.addEventListener('click', () => {
     if (estado.encendida) apagar();
@@ -511,9 +586,11 @@
   });
   archivos.addEventListener('change', () => {
     if (!archivos.files.length) return;
-    cargarPropias(archivos.files);
+    cargarPropias(archivos.files, true);
     estado.melodia = 'propia';
     encender();
-    pintar();
+    guardar(); pintar();
   });
+  casilla432.addEventListener('change', () => { estado.a432 = casilla432.checked; afinar(); guardar(); });
+  document.getElementById('musica-cambiar').addEventListener('click', () => archivos.click());
 })(window);

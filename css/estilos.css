@@ -307,7 +307,13 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
 .apoyo-cuerpo > div { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }
 .apoyo img { display: block; width: 240px; max-width: 100%; height: auto; border-radius: 10px; background: #fff; image-rendering: pixelated; }
 
-/* Retorno solar: el buscador del lugar del cumpleaños. */
+/* Pestañas (retorno solar o lunar). */
+.pestanas { display: inline-flex; flex-wrap: wrap; gap: 4px; align-self: flex-start; padding: 4px; background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 12px; }
+.pestanas button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--tenue); font-size: 14px; font-weight: 600; cursor: pointer; }
+.pestanas button:hover { color: var(--oro); }
+.pestanas button[aria-pressed="true"] { background: var(--realce); color: var(--oro); }
+
+/* Retornos: el buscador del lugar. */
 .retorno-cuando label { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--tenue); }
 .retorno-cuando input { width: 100%; max-width: 440px; }
 

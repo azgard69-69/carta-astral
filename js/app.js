@@ -32,7 +32,7 @@
     zona: 'America/Mexico_City', polar: false
   };
 
-  const estado = { datos: null, carta: null, detalle: 'sol', polarAuto: false, retorno: { anio: null, lugar: null } };
+  const estado = { datos: null, carta: null, detalle: 'sol', polarAuto: false, retorno: { tipo: 'solar', anio: null, mes: 0, lugar: null } };
 
   const $ = (s) => document.querySelector(s);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => (
@@ -327,7 +327,7 @@
       return;
     }
     estado.datos = d;
-    estado.retorno = { anio: null, lugar: null };
+    estado.retorno = { tipo: 'solar', anio: null, mes: 0, lugar: null };
     try { localStorage.setItem(CLAVE, JSON.stringify(d)); } catch (e) { /* sin almacenamiento */ }
     ir('carta');
   }
@@ -701,20 +701,28 @@
     $('#vista-hoy').innerHTML = h;
   }
 
-  // ---------- Retorno solar ----------
+  // ---------- Retornos solar y lunar ----------
 
-  // Cada año el Sol vuelve al grado exacto de tu nacimiento. La carta de ese instante, para el lugar
-  // donde pasas el cumpleaños (si no se elige otro, el de nacimiento), describe el año hasta el siguiente.
-  const ANIO_MS = 365.2422 * 86400000;
+  // Cada año el Sol, y cada 27 días y un tercio la Luna, vuelven al grado exacto de tu nacimiento. La carta
+  // de ese instante, para el lugar donde estés (si no se elige otro, el de nacimiento), describe el año o el mes.
+  const ANIO_MS = 365.2422 * 86400000, MES_LUNAR_MS = 27.321582 * 86400000;
   const msNatal = () => (estado.carta.jd - 2440587.5) * 86400000;
   const anioNatal = () => Number(estado.datos.fecha.slice(0, 4));
   const momentoRetorno = (anio) => A.retornoSolar(estado.carta.puntos[0].lon, msNatal() + (anio - anioNatal()) * ANIO_MS);
 
-  // El retorno en curso: el del último cumpleaños.
+  // El retorno solar en curso: el del último cumpleaños.
   function anioRetornoActual() {
     const hoy = new Date().getFullYear();
     const anio = Date.now() >= momentoRetorno(hoy) ? hoy : hoy - 1;
     return Math.min(2050, Math.max(anioNatal() + 1, anio));
+  }
+
+  // Retorno lunar: «mes» cuenta desde el que está en curso (0), hacia atrás (−1) o adelante (+1).
+  function momentoRetornoLunar(mes) {
+    const luna = estado.carta.puntos[1].lon, ahora = Date.now();
+    let base = A.retornoLunar(luna, ahora);
+    if (base > ahora) base = A.retornoLunar(luna, base - MES_LUNAR_MS);
+    return mes ? A.retornoLunar(luna, base + mes * MES_LUNAR_MS) : base;
   }
 
   function lugarRetorno() {
@@ -729,11 +737,11 @@
     try { return new Intl.DateTimeFormat('es', opciones).format(new Date(ms)); } catch (e) { return new Date(ms).toUTCString(); }
   }
 
-  // Astros a menos de 5° de un ángulo del retorno: los que más se notan en el año.
+  // Astros a menos de 5° de un ángulo del retorno: los que más se notan.
   function astrosEnAngulos(r) {
     const asc = r.angulos[0].lon, mc = r.angulos[1].lon, res = [];
     const angulos = [['asc', 'Ascendente', asc], ['dsc', 'Descendente', asc + 180], ['mc', 'Medio Cielo', mc], ['ic', 'Fondo del Cielo', mc + 180]];
-    r.puntos.filter((p) => p.id !== 'lilith').forEach((p) => angulos.forEach((a) => {
+    r.puntos.filter((p) => !['lilith', 'nodosur'].includes(p.id)).forEach((p) => angulos.forEach((a) => {
       const distancia = Math.abs(((p.lon - a[2] + 540) % 360) - 180);
       if (distancia <= 5) res.push({ p: p, a: a, distancia: distancia });
     }));
@@ -741,32 +749,51 @@
   }
 
   function pintarRetorno() {
-    const caja = $('#vista-retorno'), d = estado.datos;
-    const intro = 'Cada año, cerca de tu cumpleaños, el Sol vuelve al grado exacto en que estaba cuando naciste. ' +
-      'La carta de ese momento describe tu año, de un cumpleaños al siguiente.';
+    const caja = $('#vista-retorno'), d = estado.datos, lunar = estado.retorno.tipo === 'lunar';
+    const intro = lunar
+      ? 'Cada 27 días y un tercio, la Luna vuelve al grado exacto en que estaba cuando naciste. La carta de ese momento describe tu mes, hasta el siguiente retorno.'
+      : 'Cada año, cerca de tu cumpleaños, el Sol vuelve al grado exacto en que estaba cuando naciste. La carta de ese momento describe tu año, de un cumpleaños al siguiente.';
+    const pestanas = `<div class="pestanas" role="group" aria-label="Tipo de retorno">
+        <button type="button" data-accion="retorno-tipo" data-tipo="solar" aria-pressed="${!lunar}">Solar · tu año</button>
+        <button type="button" data-accion="retorno-tipo" data-tipo="lunar" aria-pressed="${lunar}">Lunar · tu mes</button></div>`;
     if (!estado.carta) {
-      caja.innerHTML = `<header class="cabecera"><div><div class="sobretitulo">Tu año</div><h1>Retorno solar</h1>
-        <p class="subtitulo">${intro}</p></div></header>
-        <div class="tarjeta"><p>Calcula primero tu carta para ver tu retorno solar.</p>
+      caja.innerHTML = `<header class="cabecera"><div><div class="sobretitulo">Tus retornos</div><h1>Retorno ${lunar ? 'lunar' : 'solar'}</h1>
+        <p class="subtitulo">${intro}</p></div></header>${pestanas}
+        <div class="tarjeta"><p>Calcula primero tu carta para ver tus retornos.</p>
         <button type="button" class="boton" data-vista="datos" style="align-self: flex-start">Ir a mis datos</button></div>`;
       return;
     }
-    if (!estado.retorno.anio) estado.retorno.anio = anioRetornoActual();
-    const anio = estado.retorno.anio, ms = momentoRetorno(anio), solNatal = estado.carta.puntos[0];
+
+    let titulo, navegacion, ms, siguiente, vuelve;
+    if (lunar) {
+      const mes = estado.retorno.mes || 0;
+      ms = momentoRetornoLunar(mes);
+      siguiente = A.retornoLunar(estado.carta.puntos[1].lon, ms + MES_LUNAR_MS);
+      vuelve = 'Luna';
+      titulo = 'Retorno lunar';
+      navegacion = `<button type="button" class="boton secundario" data-accion="retorno-mes" data-mes="${mes - 1}">‹ Mes anterior</button>
+        <button type="button" class="boton secundario" data-accion="retorno-mes" data-mes="${mes + 1}">Mes siguiente ›</button>`;
+    } else {
+      if (!estado.retorno.anio) estado.retorno.anio = anioRetornoActual();
+      const anio = estado.retorno.anio;
+      ms = momentoRetorno(anio);
+      siguiente = momentoRetorno(anio + 1);
+      vuelve = 'Sol';
+      titulo = 'Retorno solar ' + anio;
+      navegacion = `<button type="button" class="boton secundario" data-accion="retorno-anio" data-anio="${anio - 1}"${anio - 1 <= anioNatal() ? ' disabled' : ''}>‹ ${anio - 1}</button>
+        <button type="button" class="boton secundario" data-accion="retorno-anio" data-anio="${anio + 1}"${anio + 1 > 2050 ? ' disabled' : ''}>${anio + 1} ›</button>`;
+    }
     let h = `<header class="cabecera"><div>
-        <div class="sobretitulo">${nombreCompleto(d) ? esc(nombreCompleto(d)) : 'Tu año'}</div>
-        <h1>Retorno solar ${anio}</h1>
+        <div class="sobretitulo">${nombreCompleto(d) ? esc(nombreCompleto(d)) : 'Tus retornos'}</div>
+        <h1>${titulo}</h1>
         <p class="subtitulo">${intro}</p>
-      </div><div class="acciones">
-        <button type="button" class="boton secundario" data-accion="retorno-anio" data-anio="${anio - 1}"${anio - 1 <= anioNatal() ? ' disabled' : ''}>‹ ${anio - 1}</button>
-        <button type="button" class="boton secundario" data-accion="retorno-anio" data-anio="${anio + 1}"${anio + 1 > 2050 ? ' disabled' : ''}>${anio + 1} ›</button>
-      </div></header>`;
+      </div><div class="acciones">${navegacion}</div></header>${pestanas}`;
 
     if (d.sinHora) {
-      h += `<div class="tarjeta"><p>Para calcular tu retorno solar hace falta tu hora de nacimiento. Sin ella, tu Sol natal
-        puede estar medio grado más acá o más allá, y el momento del retorno cambia hasta medio día: no se pueden
-        saber el Ascendente ni las casas del año.</p>
-        <p class="nota">Tu Sol vuelve a su lugar alrededor del ${fechaEn(ms, d.zona)}.</p>
+      h += `<div class="tarjeta"><p>${lunar
+        ? 'Para calcular tu retorno lunar hace falta tu hora de nacimiento. Sin ella, tu Luna natal puede estar hasta 7° más acá o más allá, y el momento del retorno cambia más de medio día.'
+        : 'Para calcular tu retorno solar hace falta tu hora de nacimiento. Sin ella, tu Sol natal puede estar medio grado más acá o más allá, y el momento del retorno cambia hasta medio día: no se pueden saber el Ascendente ni las casas del año.'}</p>
+        <p class="nota">Tu ${vuelve} vuelve a su lugar alrededor del ${fechaEn(ms, d.zona)}.</p>
         <button type="button" class="boton" data-vista="datos" style="align-self: flex-start">Añadir mi hora</button></div>`;
       caja.innerHTML = h;
       return;
@@ -775,22 +802,38 @@
     const lugar = lugarRetorno(), polar = lugar.natal ? d.polar : Math.abs(lugar.lat) >= 66;
     const r = A.calcularCarta({ ms: ms, lat: lugar.lat, lon: lugar.lon, sistema: polar ? 'iguales' : 'placidus' });
     const sol = r.puntos[0], luna = r.puntos[1], asc = r.angulos[0];
+    const natal = estado.carta.puntos[lunar ? 1 : 0];
     const casaNatalAsc = A.casaDe(asc.lon, estado.carta.casas.cuspides);
     const signo = (p) => `<span class="triada-signo"><span class="simbolo oro" aria-hidden="true">${SIGNO_SIMBOLO[p.pos.signo]}${TXT}</span>${GUIA.signos[p.pos.signo].nombre}</span>`;
+    const periodo = lunar ? 'mes' : 'año', este = lunar ? 'Este mes' : 'Este año';
 
     h += `<section class="tarjeta retorno-cuando"><h2 class="etiqueta">Cuándo y dónde</h2>
-        <p>Tu Sol vuelve a <b>${solNatal.pos.texto}</b> el <b>${fechaEn(ms, lugar.zona, true)}</b>, hora de ${esc(lugar.etiqueta || 'tu lugar')}.
-        Este retorno vale hasta tu próximo cumpleaños, el ${fechaEn(momentoRetorno(anio + 1), lugar.zona)}.</p>
-        <label for="retorno-lugar">Dónde pasas ese cumpleaños</label>
+        <p>Tu ${vuelve} vuelve a <b>${natal.pos.texto}</b> el <b>${fechaEn(ms, lugar.zona, true)}</b>, hora de ${esc(lugar.etiqueta || 'tu lugar')}.
+        Este retorno vale hasta ${lunar ? 'el siguiente, el ' : 'tu próximo cumpleaños, el '}${fechaEn(siguiente, lugar.zona)}.</p>
+        <label for="retorno-lugar">${lunar ? 'Dónde estás ese día' : 'Dónde pasas ese cumpleaños'}</label>
         <div class="con-sugerencias">
           <input id="retorno-lugar" type="text" autocomplete="off" value="${esc(lugar.etiqueta || '')}" placeholder="Escribe la ciudad">
           <ul id="retorno-sugerencias" class="sugerencias" aria-label="Ciudades que coinciden" hidden></ul>
         </div>
-        <p class="nota">El retorno se calcula para el lugar donde estés en ese momento; cambia el Ascendente y las casas del año.
+        <p class="nota">El retorno se calcula para el lugar donde estés en ese momento; cambia el Ascendente y las casas.
         Si no lo sabes, deja tu lugar de nacimiento.${lugar.natal ? '' : ' <button type="button" class="enlace" data-accion="retorno-natal">Volver a mi lugar de nacimiento</button>'}</p>
-      </section>
+      </section>`;
 
-      <section class="triada" aria-label="Lo principal de tu año">
+    if (lunar) {
+      h += `<section class="triada" aria-label="Lo principal de tu mes">
+        <div class="tarjeta triada-carta"><span class="etiqueta">Ascendente del mes</span>${signo(asc)}
+          <span class="nota">Ascendente en ${asc.pos.texto} · cae en tu casa ${casaNatalAsc} natal (${TEXTOS.casasCorto[casaNatalAsc]})</span>
+          <span>${esc(TEXTOS.retornoLunar.ascendente[asc.pos.signo])}</span></div>
+        <div class="tarjeta triada-carta"><span class="etiqueta">Luna del mes</span>
+          <span class="triada-signo"><span class="simbolo oro" aria-hidden="true">${glifo('luna')}</span>Casa ${luna.casa}</span>
+          <span class="nota">Tu Luna cae en la casa ${luna.casa} del retorno</span>
+          <span>Este mes tus emociones se centran en ${TEXTOS.casasCorto[luna.casa]}: ahí buscarás sentirte bien.</span></div>
+        <div class="tarjeta triada-carta"><span class="etiqueta">Sol del mes</span>${signo(sol)}
+          <span class="nota">Sol en ${sol.pos.texto} · casa ${sol.casa}</span>
+          <span>Este mes tu energía y tu atención van sobre todo a ${TEXTOS.casasCorto[sol.casa]}.</span></div>
+      </section>`;
+    } else {
+      h += `<section class="triada" aria-label="Lo principal de tu año">
         <div class="tarjeta triada-carta"><span class="etiqueta">Ascendente del año</span>${signo(asc)}
           <span class="nota">Ascendente en ${asc.pos.texto} · cae en tu casa ${casaNatalAsc} natal (${TEXTOS.casasCorto[casaNatalAsc]})</span>
           <span>${esc(TEXTOS.retorno.ascendente[asc.pos.signo])}</span></div>
@@ -801,28 +844,29 @@
         <div class="tarjeta triada-carta"><span class="etiqueta">Luna del año</span>${signo(luna)}
           <span class="nota">Luna en ${luna.pos.texto} · casa ${luna.casa}</span>
           <span>${esc(GUIA.signos[luna.pos.signo].triada.luna)} Este año lo vives sobre todo en ${TEXTOS.casasCorto[luna.casa]}.</span></div>
-      </section>
+      </section>`;
+    }
 
-      <div class="columnas"><div class="col">${Rueda.dibujar(r)}${leyendaRueda(r)}</div>
-      <div class="col"><section class="tarjeta" style="gap: 0"><h2 class="etiqueta" style="margin-bottom: 4px">Los planetas en tu año</h2>
+    h += `<div class="columnas"><div class="col">${Rueda.dibujar(r)}${leyendaRueda(r)}</div>
+      <div class="col"><section class="tarjeta" style="gap: 0"><h2 class="etiqueta" style="margin-bottom: 4px">Los planetas en tu ${periodo}</h2>
         ${r.puntos.filter((p) => !['sol', 'luna', 'lilith', 'nodosur'].includes(p.id)).map((p) => `<div class="renglon">
           <span><span class="simbolo ${claseDe(p.id)}" aria-hidden="true">${glifo(p.id)}</span> <b>${p.nombre}</b> en ${p.pos.texto}${p.retro ? ' R' : ''}</span>
           <span class="orbe">casa ${p.casa}</span>
-          <small>Este año, ${TEXTOS.astros[p.id].corto} se juega sobre todo en ${TEXTOS.casasCorto[p.casa]}.</small></div>`).join('')}
+          <small>${este}, ${TEXTOS.astros[p.id].corto} se juega sobre todo en ${TEXTOS.casasCorto[p.casa]}.</small></div>`).join('')}
       </section>`;
     const pegados = astrosEnAngulos(r);
     if (pegados.length) {
       h += `<section class="tarjeta" style="gap: 0"><h2 class="etiqueta" style="margin-bottom: 4px">Lo que más se nota</h2>
-        <p class="nota">Astros pegados a un ángulo del retorno: marcan el año.</p>
+        <p class="nota">Astros pegados a un ángulo del retorno: marcan el ${periodo}.</p>
         ${pegados.map((x) => `<div class="renglon"><span><b>${x.p.nombre}</b> junto al ${x.a[1]}</span>
           <span class="orbe">a ${x.distancia.toFixed(1).replace('.', ',')}°</span>
-          <small>Este año, ${TEXTOS.astros[x.p.id].corto} se nota mucho ${TEXTOS.retorno.angulos[x.a[0]]}.</small></div>`).join('')}
+          <small>${este}, ${TEXTOS.astros[x.p.id].corto} se nota mucho ${TEXTOS.retorno.angulos[x.a[0]]}.</small></div>`).join('')}
       </section>`;
     }
-    h += `<p class="nota">Tu carta natal describe quién eres; el retorno solar, el clima de este año. Se leen juntos.</p></div></div>`;
+    h += `<p class="nota">Tu carta natal describe quién eres; el retorno, el clima de este ${periodo}. Se leen juntos.</p></div></div>`;
     caja.innerHTML = h;
 
-    // Buscador del lugar del cumpleaños, con la misma lista de ciudades del formulario.
+    // Buscador del lugar, con la misma lista de ciudades del formulario.
     const entrada = $('#retorno-lugar'), lista = $('#retorno-sugerencias');
     let opciones = [];
     const elegir = (s) => {
@@ -1066,6 +1110,8 @@
     else if (b.dataset.accion === 'escuchar') escuchar();
     else if (b.dataset.accion === 'retorno-anio') { Voz.parar(); estado.retorno.anio = Number(b.dataset.anio); pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-natal') { Voz.parar(); estado.retorno.lugar = null; pintarRetorno(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'retorno-mes') { Voz.parar(); estado.retorno.mes = Number(b.dataset.mes); pintarRetorno(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'retorno-tipo') { Voz.parar(); estado.retorno.tipo = b.dataset.tipo; pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.detalle) { estado.detalle = b.dataset.detalle; ir('detalle'); } else ir(b.dataset.vista);
   });
 
@@ -1087,7 +1133,7 @@
   $('#ejemplo').addEventListener('click', () => { llenarFormulario(EJEMPLO); refrescarLugar(); });
   $('#borrar').addEventListener('click', () => {
     try { localStorage.removeItem(CLAVE); } catch (e) { /* sin almacenamiento */ }
-    estado.datos = null; estado.carta = null; estado.retorno = { anio: null, lugar: null };
+    estado.datos = null; estado.carta = null; estado.retorno = { tipo: 'solar', anio: null, mes: 0, lugar: null };
     llenarFormulario({}); refrescarLugar();
     $('#error').hidden = true;
   });

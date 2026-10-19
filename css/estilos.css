@@ -76,6 +76,11 @@ button, input, select { font-family: inherit; }
 .musica-propia { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--realce); }
 .musica-propia .musica-fila { flex-wrap: wrap; }
 .musica-propia .musica-fila button { flex: 1 1 auto; min-height: 40px; padding: 0 10px; font-size: 13px; }
+.musica-propia .musica-fila button svg { width: 16px; height: 16px; }
+/* Anterior y siguiente, lado a lado; en el menú lateral solo con su icono, en el teléfono también con texto. */
+.musica-propia .musica-saltos { flex-wrap: nowrap; }
+.musica-propia .musica-saltos button { flex: 1 1 0; min-width: 0; gap: 6px; }
+.texto-salto { display: none; }
 .casilla-musica { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--texto); cursor: pointer; }
 .casilla-musica input { width: 18px; height: 18px; accent-color: var(--oro); }
 #musica-aviso:empty { display: none; }
@@ -373,6 +378,7 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
   #musica-boton { flex-grow: 0; }
   #musica-opciones, #musica-aviso { flex-basis: 100%; }
   #musica-opciones { padding: 10px; border: 1px solid var(--linea); border-radius: 12px; }
+  .texto-salto { display: inline; }
   .menu-nota { display: none; }
   .menu-lista {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;

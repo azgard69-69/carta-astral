@@ -599,8 +599,10 @@
 
   // ---------- Reproductor ----------
 
-  const estado = { melodia: 'gayatri', volumen: 0.5, encendida: false, a432: true };
+  const estado = { melodia: 'gayatri', volumen: 0.5, encendida: false, a432: true, aleatorio: false };
   let ctx = null, maestro = null, reloj = null, audio = null, propias = [], indice = 0, desdeElPrincipio = true;
+  // En orden aleatorio: las que faltan por sonar (barajadas) y las que ya sonaron, para «Anterior».
+  let pendientes = [], historial = [];
 
   // El volumen del control (0 a 1) se traduce a la fuerza real del sonido.
   const fuerza = (v) => 2.2 * v * v;
@@ -620,13 +622,51 @@
   function tocarPropia(i) {
     if (!audio) {
       audio = new Audio();
-      audio.addEventListener('ended', () => tocarPropia((indice + 1) % propias.length));
+      audio.addEventListener('ended', siguiente);
     }
     indice = i;
     audio.src = propias[i].url;
     audio.volume = Math.min(1, estado.volumen);
     afinar();
     sonarPropia();
+    if (g.Musica.alCambiar) g.Musica.alCambiar();
+  }
+
+  function barajar(lista) {
+    for (let i = lista.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [lista[i], lista[j]] = [lista[j], lista[i]];
+    }
+    return lista;
+  }
+
+  // La siguiente canción: en orden, o en aleatorio sin repetir ninguna hasta que suenen todas.
+  function siguiente() {
+    if (!propias.length) return;
+    if (estado.aleatorio && propias.length > 1) {
+      historial.push(indice);
+      if (!pendientes.length) pendientes = barajar(propias.map((p, k) => k).filter((k) => k !== indice));
+      tocarPropia(pendientes.pop());
+    } else {
+      tocarPropia((indice + 1) % propias.length);
+    }
+  }
+
+  // La anterior: en aleatorio, la que sonó antes (y la de ahora vuelve a quedar como siguiente).
+  function anterior() {
+    if (!propias.length) return;
+    if (estado.aleatorio && historial.length) {
+      pendientes.push(indice);
+      tocarPropia(historial.pop());
+    } else {
+      tocarPropia((indice - 1 + propias.length) % propias.length);
+    }
+  }
+
+  // Elegida de la lista: suena esa y el orden aleatorio sigue con las demás.
+  function elegirCancion(i) {
+    if (estado.aleatorio) { historial.push(indice); pendientes = pendientes.filter((k) => k !== i); }
+    tocarPropia(i);
   }
 
   // Si el navegador no deja sonar todavía, se intenta de nuevo con el primer clic o tecla.
@@ -680,8 +720,9 @@
     if (estado.melodia === 'propia') {
       if (!propias.length) return false;
       // Si estaba en pausa, sigue donde se quedó; si se eligieron canciones nuevas, empieza por la primera.
+      // En aleatorio, la primera también sale al azar.
       if (audio && audio.src && !desdeElPrincipio) sonarPropia();
-      else tocarPropia(0);
+      else tocarPropia(estado.aleatorio ? Math.floor(Math.random() * propias.length) : 0);
       desdeElPrincipio = false;
     } else {
       const Contexto = g.AudioContext || g.webkitAudioContext;
@@ -707,6 +748,7 @@
   function cargarPropias(archivos, guardarlas) {
     propias.forEach((p) => URL.revokeObjectURL(p.url));
     propias = Array.from(archivos).map((a) => ({ nombre: a.name, url: URL.createObjectURL(a) }));
+    indice = 0; pendientes = []; historial = [];
     desdeElPrincipio = true;
     if (guardarlas) guardarCanciones(Array.from(archivos));
   }
@@ -734,11 +776,13 @@
   const archivos = document.getElementById('musica-archivos'), aviso = document.getElementById('musica-aviso');
   const propia = document.getElementById('musica-propia'), casilla432 = document.getElementById('musica-432');
   const recomendacion = document.getElementById('musica-recomendacion');
+  const cancion = document.getElementById('musica-cancion'), casillaAleatorio = document.getElementById('musica-aleatorio');
 
   let guardado = null;
   try { guardado = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) { /* nada guardado */ }
   if (guardado && (PISTAS[guardado.melodia] || guardado.melodia === 'propia')) estado.melodia = guardado.melodia;
   if (guardado && guardado.a432 === false) estado.a432 = false;
+  if (guardado && guardado.aleatorio === true) estado.aleatorio = true;
   if (guardado && guardado.volumen >= 0 && guardado.volumen <= 1) estado.volumen = guardado.volumen;
   // La música empieza encendida, salvo que la persona la haya pausado la última vez.
   const quiereMusica = !(guardado && guardado.encendida === false);
@@ -747,13 +791,17 @@
     try {
       localStorage.setItem(CLAVE, JSON.stringify({
         melodia: PISTAS[estado.melodia] || estado.melodia === 'propia' ? estado.melodia : 'gayatri',
-        volumen: estado.volumen, encendida: estado.encendida, a432: estado.a432
+        volumen: estado.volumen, encendida: estado.encendida, a432: estado.a432, aleatorio: estado.aleatorio
       }));
     } catch (e) { /* sin almacenamiento */ }
   };
 
   const ICONO_PAUSA = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
   const ICONO_TOCAR = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+
+  // El nombre del archivo, sin la extensión (.mp3, .m4a…).
+  const titulo = (p) => p.nombre.replace(/\.[^.]+$/, '');
+  let enLaLista = null;
 
   function pintar() {
     // El texto va aparte para poder esconderlo en pantallas muy estrechas (queda solo el icono).
@@ -766,8 +814,15 @@
     const enEspera = estado.encendida && ((ctx && ctx.state === 'suspended') || (estado.melodia === 'propia' && audio && audio.paused));
     aviso.textContent = enEspera
       ? 'Sonará en cuanto hagas clic en cualquier parte.'
-      : estado.melodia === 'propia' && propias.length ? 'Suena: ' + propias.map((p) => p.nombre).join(', ') : '';
+      : estado.melodia === 'propia' && estado.encendida && propias[indice] ? 'Suena: ' + titulo(propias[indice]) : '';
     propia.hidden = estado.melodia !== 'propia';
+    if (enLaLista !== propias) {
+      // Los nombres van como texto (no como HTML), por si algún archivo tiene símbolos raros.
+      cancion.replaceChildren(...propias.map((p, i) => new Option((i + 1) + '. ' + titulo(p), String(i))));
+      enLaLista = propias;
+    }
+    cancion.value = String(indice);
+    casillaAleatorio.checked = estado.aleatorio;
     recomendacion.textContent = (PISTAS[estado.melodia] && PISTAS[estado.melodia].nota) || '';
     casilla432.checked = estado.a432;
   }
@@ -780,6 +835,7 @@
     if (ctx && ctx.state === 'suspended') ctx.resume().then(pintar, pintar);
     if (estado.encendida && estado.melodia === 'propia' && audio && audio.paused) audio.play().then(pintar, pintar);
   }
+  g.Musica.alCambiar = pintar;
   g.Musica.esperarClic = () => {
     document.addEventListener('pointerdown', despertar);
     document.addEventListener('keydown', despertar);
@@ -841,6 +897,21 @@
     guardar(); pintar();
   });
   casilla432.addEventListener('change', () => { estado.a432 = casilla432.checked; afinar(); guardar(); });
+  // Cambiar de canción también la pone a sonar, aunque la música estuviera en pausa.
+  const cambiarCancion = (accion) => {
+    if (!propias.length) return;
+    accion();
+    estado.encendida = true; desdeElPrincipio = false;
+    guardar(); pintar();
+  };
+  cancion.addEventListener('change', () => cambiarCancion(() => elegirCancion(Number(cancion.value))));
+  document.getElementById('musica-anterior').addEventListener('click', () => cambiarCancion(anterior));
+  document.getElementById('musica-siguiente').addEventListener('click', () => cambiarCancion(siguiente));
+  casillaAleatorio.addEventListener('change', () => {
+    estado.aleatorio = casillaAleatorio.checked;
+    pendientes = []; historial = [];
+    guardar();
+  });
   document.getElementById('musica-cambiar').addEventListener('click', () => { archivos.value = ''; archivos.click(); });
   // Quitar las canciones propias: se borran de este equipo y vuelve la melodía de siempre.
   document.getElementById('musica-quitar').addEventListener('click', () => {

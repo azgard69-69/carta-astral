@@ -3,7 +3,7 @@
  * se pueda instalar y abrir sin conexión. Con conexión, siempre trae la versión más nueva.
  * Al cambiar la lista de archivos, sube el número de VERSION.
  */
-const VERSION = 'carta-astral-10';
+const VERSION = 'carta-astral-11';
 const ARCHIVOS = [
   "./",
   "index.html",

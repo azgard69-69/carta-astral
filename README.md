@@ -142,7 +142,9 @@ de dominio público. Todas están afinadas con el la en 432 Hz.
 8. **Noche serena:** acordes lentos con algún destello agudo.
 
 Con **Elegir mis canciones…** puedes elegir canciones de tu equipo (después aparecen como **Mis
-canciones**; con **Elegir otras…** las cambias y con **Quitar mis canciones** las borras). La app las recuerda en el navegador
+canciones**; con **Elegir otras…** las cambias y con **Quitar mis canciones** las borras). Mientras
+suenan puedes escoger una de la lista **Canción**, pasar a la **anterior** o la **siguiente**, y
+marcar **Orden aleatorio** para que suenen revueltas, sin repetir ninguna hasta que suenen todas. La app las recuerda en el navegador
 de ese equipo (no se suben a ningún lado) para que suenen la próxima vez, y con **Afinar mi música a
 432 Hz** las toca un 1,8 % más despacio, sin corregir el tono, para pasarlas de 440 a 432 Hz. Así
 puedes escuchar en 432 Hz canciones con derechos de autor que no pueden ir dentro de un programa

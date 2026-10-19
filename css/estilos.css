@@ -306,7 +306,7 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
 .retorno-cuando label { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--tenue); }
 .retorno-cuando input { width: 100%; max-width: 440px; }
 
-/* Canal de interés, en «Cómo se lee». */
+/* Canales de interés, en «Cómo se lee». */
 .canales ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 0; padding: 0; list-style: none; }
 .canales a {
   display: grid; grid-template-columns: 24px 1fr; gap: 4px 10px; height: 100%; padding: 12px 14px;

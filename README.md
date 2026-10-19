@@ -5,25 +5,70 @@ Ascendente), decanatos, lado oscuro de cada signo, Lilith, planetas, casas, aspe
 significado del nombre y numerología. Dibuja la rueda al estilo del reloj astronómico de Praga,
 imprime un informe completo y tiene música de fondo.
 
-Funciona sin internet y guarda todo en tu propio equipo. Sirve igual en Linux y en Windows.
+Funciona sin internet y guarda todo en tu propio equipo. Sirve en Windows, en Linux y en el teléfono.
 
-## Cómo abrirla
+## Cómo descargarla y usarla
 
-- **Lo más simple:** doble clic en `index.html`. Se abre en tu navegador.
-- **En su propia ventana, Linux:** ejecuta `abrir-linux.sh`.
-- **En su propia ventana, Windows:** doble clic en `Abrir Carta Astral.bat`.
+Es gratis, no pide crear cuentas y tus datos se quedan en tu computadora o en tu teléfono.
 
-No hay que instalar nada. Para que aparezca en el menú de aplicaciones de Linux:
+### En la computadora (Windows o Linux)
 
-```bash
-./instalar-linux.sh
-```
+1. **Descárgala.** Arriba en esta página, pulsa el botón verde **Code** y luego **Download ZIP**.
+2. **Descomprímela.**
+   - Windows: clic derecho sobre el archivo descargado → **Extraer todo…** → **Extraer**.
+   - Linux: clic derecho sobre el archivo → **Extraer aquí**.
+3. **Ábrela.** Entra en la carpeta `carta-astral-main` que se acaba de crear:
+   - **Windows:** doble clic en `index.html` (puede aparecer solo como `index`) y se abre en tu
+     navegador. Para abrirla en su propia ventana, sin barras, usa `Abrir Carta Astral.bat`.
+   - **Linux:** doble clic en `index.html`. Para abrirla en su propia ventana, abre una terminal
+     en esa carpeta y escribe:
 
-Y para quitarla del menú:
+     ```bash
+     ./abrir-linux.sh
+     ```
 
-```bash
-./instalar-linux.sh --quitar
-```
+     Para que aparezca en el menú de aplicaciones, `./instalar-linux.sh` (y para quitarla,
+     `./instalar-linux.sh --quitar`).
+
+Funciona sin internet. Usa un navegador actual: Chrome, Edge, Brave o Firefox.
+
+**Sin descargar nada:** abre https://azgard69-69.github.io/carta-astral/ en Chrome, Edge o Brave
+y pulsa el botón **Instalar** que aparece en la barra de direcciones. Queda como una aplicación más
+de tu computadora.
+
+### En el teléfono (Android o iPhone)
+
+En el teléfono no se usa el ZIP: la app se abre desde su dirección web y se instala desde ahí.
+
+1. Abre **https://azgard69-69.github.io/carta-astral/** en el navegador del teléfono.
+2. Instálala:
+   - **Android (Chrome):** menú **⋮** → **Instalar aplicación** o **Agregar a la pantalla principal**.
+   - **iPhone (Safari):** botón **Compartir** (el cuadrado con la flecha hacia arriba) →
+     **Agregar a inicio**.
+3. Aparece el icono de Carta Astral junto a tus otras apps. La primera vez necesita internet;
+   después funciona sin conexión.
+
+### Primeros pasos
+
+1. En **Mis datos**, escribe tu nombre y apellidos, tu fecha y hora de nacimiento, y empieza a
+   escribir tu lugar de nacimiento hasta que aparezca en la lista; elígelo ahí. Si hay varios
+   lugares con el mismo nombre, añade el estado o el país: «San José Chiapas».
+2. Pulsa **Calcular mi carta**.
+3. Recorre **Carta natal** (tu signo solar, lunar y Ascendente, la rueda, los planetas, las casas y
+   los aspectos; toca cualquier astro para leer más), **Cielo de hoy** y **Cómo se lee**.
+4. Con **Imprimir o guardar PDF** obtienes el informe completo.
+5. La música empieza sola; se pausa desde el menú.
+
+Si no sabes tu hora de nacimiento, marca **No conozco mi hora exacta**: verás todo menos el
+Ascendente y las casas.
+
+### Actualizarla
+
+- **En la computadora:** descárgala de nuevo y sustituye la carpeta anterior.
+- **En el teléfono:** se actualiza sola cuando la abres con internet.
+
+Tus datos se guardan en el navegador, no en la carpeta. Si al cambiar de versión no aparecen,
+vuelve a escribirlos: la carta se calcula en un momento.
 
 ## Compartirla
 
@@ -31,12 +76,10 @@ Y para quitarla del menú:
 python3 herramientas/empaquetar.py
 ```
 
-Deja en `distribuir/` un archivo `.zip` de menos de 1 MB con solo lo necesario. Quien lo reciba
-lo descomprime y la abre como se explica arriba.
-
-Cuando la app esté publicada en internet (por ejemplo en GitHub Pages), también se podrá instalar
-desde el navegador en Windows, Linux o el teléfono, y seguirá funcionando sin conexión. De eso se
-encargan `manifest.webmanifest` y `sw.js`.
+Deja en `distribuir/` un archivo `.zip` de unos 4 MB con solo lo necesario para usarla (sin las
+herramientas ni las pruebas). Quien lo reciba lo descomprime y la abre como se explica arriba.
+La copia que se instala desde el navegador funciona sin conexión gracias a `manifest.webmanifest`
+y `sw.js`.
 
 ## Imprimir o guardar en PDF
 

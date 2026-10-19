@@ -16,8 +16,8 @@ Es gratis, no pide crear cuentas y tus datos se quedan en tu computadora o en tu
 
 ### En la computadora (Windows o Linux)
 
-**Linux, lo más fácil:** en la sección **Releases** de esta página, descarga el archivo
-`Carta_Astral-…-x86_64.AppImage`. Dale permiso para ejecutarse (clic derecho → **Propiedades** →
+**Linux, lo más fácil:** en [la última versión](https://github.com/azgard69-69/carta-astral/releases/latest)
+(sección **Releases**), descarga el archivo `Carta_Astral-…-x86_64.AppImage`. Dale permiso para ejecutarse (clic derecho → **Propiedades** →
 **Permitir ejecutar como programa**) y ábrelo con doble clic. Usa el navegador que ya tengas instalado.
 
 **Windows, o Linux sin AppImage:**
@@ -96,7 +96,9 @@ Para el AppImage de Linux hace falta el «runtime» oficial de AppImage
 python3 herramientas/hacer_appimage.py runtime-x86_64
 ```
 
-Deja en `distribuir/` el archivo `Carta_Astral-<versión>-x86_64.AppImage`, de unos 4 MB. No lleva
+Deja en `distribuir/` el archivo `Carta_Astral-<versión>-x86_64.AppImage`, de unos 4 MB. Al subir una
+etiqueta `v<versión>` a GitHub, `.github/workflows/publicar.yml` lo arma solo y lo publica en Releases
+junto con el `.zip`. No lleva
 navegador dentro: al abrirlo copia la app a `~/.local/share/carta-astral/` y la abre con el
 navegador del equipo.
 La copia que se instala desde el navegador funciona sin conexión gracias a `manifest.webmanifest`

@@ -1,0 +1,38 @@
+# Publica una versión de Carta Astral en «Releases» cada vez que se sube una etiqueta v…
+# (por ejemplo, v0.5). Arma el AppImage de Linux y el .zip y los adjunta a esa versión.
+# La etiqueta debe coincidir con VERSION de herramientas/empaquetar.py.
+name: Publicar versión
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar que la etiqueta coincide con la versión
+        run: |
+          VERSION=$(python3 -c "import sys; sys.path.insert(0, 'herramientas'); from empaquetar import VERSION; print(VERSION)")
+          test "${GITHUB_REF_NAME#v}" = "$VERSION" || { echo "La etiqueta $GITHUB_REF_NAME no coincide con VERSION $VERSION"; exit 1; }
+
+      - name: Instalar mksquashfs
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools
+
+      - name: Descargar el runtime oficial de AppImage
+        run: curl -sSL -o runtime-x86_64 https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
+
+      - name: Armar el AppImage y el .zip
+        run: |
+          python3 herramientas/hacer_appimage.py runtime-x86_64
+          python3 herramientas/empaquetar.py
+
+      - name: Crear la versión en Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" distribuir/* --title "Carta Astral ${GITHUB_REF_NAME#v}" --notes-file herramientas/notas-version.md

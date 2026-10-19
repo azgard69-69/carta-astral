@@ -76,7 +76,10 @@ def main():
             f.write(ESCRITORIO)
         shutil.copy2(os.path.join(raiz, "iconos", "icono-512.png"), os.path.join(appdir, "carta-astral.png"))
         os.symlink("carta-astral.png", os.path.join(appdir, ".DirIcon"))
-        subprocess.run(["desktop-file-validate", os.path.join(appdir, "carta-astral.desktop")], check=False)
+        try:
+            subprocess.run(["desktop-file-validate", os.path.join(appdir, "carta-astral.desktop")], check=False)
+        except FileNotFoundError:
+            pass  # la comprobación es opcional
 
         imagen = os.path.join(trabajo, "app.squashfs")
         subprocess.run(["mksquashfs", appdir, imagen, "-root-owned", "-noappend", "-comp", "zstd", "-quiet"],

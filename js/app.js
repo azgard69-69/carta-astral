@@ -8,7 +8,7 @@
   const TXT = '︎'; // pide al sistema el símbolo como texto, no como emoji
   const SIMBOLO = {
     sol: '☉', luna: '☽', mercurio: '☿', venus: '♀', marte: '♂', jupiter: '♃',
-    saturno: '♄', urano: '♅', neptuno: '♆', pluton: '♇', lilith: '⚸'
+    saturno: '♄', urano: '♅', neptuno: '♆', pluton: '♇', lilith: '⚸', quiron: '⚷', nodo: '☊', nodosur: '☋'
   };
   const SIGNO_SIMBOLO = '♈♉♊♋♌♍♎♏♐♑♒♓';
   const ORDINAL = ['1.er', '2.º', '3.er'];
@@ -19,6 +19,12 @@
   const TENSOS = { cuadratura: true, oposicion: true };
   // Algunas personas se asustaron al leer su lado oscuro: esta frase acompaña siempre a esas secciones.
   const TEXTO_SOMBRA = 'El lado oscuro no es un destino: muestra lo que conviene vigilar y trabajar. Conocerlo ya es el primer paso para manejarlo.';
+  const TEXTO_NODOS = 'Son los dos puntos donde el camino de la Luna cruza el del Sol; cerca de ellos ocurren los eclipses. ' +
+    'Siempre van juntos y enfrentados: el Nodo Norte señala hacia dónde crecer y el Nodo Sur lo que ya traes aprendido. ' +
+    'Tardan año y medio en cada signo, así que su signo lo compartes con la gente nacida cerca de tu fecha; lo personal lo marcan sus casas.';
+  const TEXTO_QUIRON = 'Es un cuerpo pequeño que gira entre Saturno y Urano. Se descubrió en 1977 y tarda unos 50 años en dar la vuelta al Sol. ' +
+    'Lleva el nombre del centauro sabio que sanaba a otros, pero no podía curar su propia herida.';
+  const AVISO_QUIRON = 'Quirón no es un castigo: lo que más te dolió suele convertirse en lo que mejor sabes acompañar en otras personas.';
   const TEXTO_RETRO = 'Cuando naciste, este planeta parecía ir hacia atrás en el cielo. Su energía se vive más hacia dentro: cuesta más mostrarla, pero se piensa mejor.';
   const EJEMPLO = {
     nombre: '', apellidos: '', fecha: '1990-04-05', hora: '14:30', sinHora: false,
@@ -32,7 +38,7 @@
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const glifo = (id) => SIMBOLO[id] ? SIMBOLO[id] + TXT : '';
-  const claseDe = (id) => (id === 'sol' || id === 'luna' || id === 'asc') ? 'oro' : id === 'lilith' ? 'rosa' : '';
+  const claseDe = (id) => (id === 'sol' || id === 'luna' || id === 'asc') ? 'oro' : (id === 'lilith' || id === 'quiron') ? 'rosa' : '';
   const mayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const grados = (pos) => pos.grado + '°' + String(pos.minuto).padStart(2, '0') + '′';
   const nombreCompleto = (d) => [d.nombre, d.apellidos].filter(Boolean).join(' ');
@@ -564,7 +570,8 @@
 
   function pintarDetalle() {
     const c = estado.carta;
-    const disponibles = c.puntos.slice(0, 2).concat(c.angulos.slice(0, 1), c.puntos.slice(2));
+    const disponibles = c.puntos.slice(0, 2).concat(c.angulos.slice(0, 1), c.puntos.slice(2)).filter((x) => x.id !== 'nodosur');
+    if (estado.detalle === 'nodosur') estado.detalle = 'nodo';
     if (!puntoDe(estado.detalle) || estado.detalle === 'mc') estado.detalle = 'sol';
     const id = estado.detalle, p = puntoDe(id), astro = TEXTOS.astros[id];
     const signo = GUIA.signos[p.pos.signo], dec = signo.decanatos[p.pos.decanato];
@@ -589,7 +596,22 @@
     // Columna izquierda: qué significa, en claro.
     h += `<div class="columnas"><div class="col"><h2 class="titulo-col">${DE_LA_GUIA[id] ? 'Luz' : 'En claro'}</h2>`;
     h += tarjeta('Qué representa', astro.que);
-    if (DE_LA_GUIA[id]) {
+    const nodos = TEXTOS.nodos[p.pos.signo], herida = TEXTOS.quiron[p.pos.signo], sur = puntoDe('nodosur');
+    if (id === 'nodo') {
+      h += tarjeta('Qué son los nodos', TEXTO_NODOS) +
+        tarjeta('Tu camino · Nodo Norte en ' + signo.nombre, nodos.camino) +
+        tarjeta('Lo que arrastras · Nodo Sur en ' + GUIA.signos[sur.pos.signo].nombre, nodos.arrastras, 'sombra');
+      if (p.casa) {
+        h += tarjeta('En tus casas', `Tu camino pasa por ${TEXTOS.casasCorto[p.casa]} (casa ${p.casa}); ` +
+          `lo que tiendes a repetir está en ${TEXTOS.casasCorto[sur.casa]} (casa ${sur.casa}).`);
+      }
+    } else if (id === 'quiron') {
+      h += tarjeta('Qué es Quirón', TEXTO_QUIRON) +
+        tarjeta('La herida · Quirón en ' + signo.nombre, herida.herida, 'sombra',
+          `Quirón tarda ${astro.generacion} en cada signo: la herida del signo la compartes con la gente de tu edad. Lo personal lo marca su casa.`);
+      if (p.casa) h += tarjeta('En tu casa ' + p.casa, `La herida se nota sobre todo en ${TEXTOS.casasCorto[p.casa]}, y ahí también está tu don para ayudar.`);
+      if (p.retro) h += tarjeta('Retrógrado', TEXTO_RETRO);
+    } else if (DE_LA_GUIA[id]) {
       h += tarjeta(astro.articulo + ' en ' + signo.nombre, signo.triada[id]) +
         tarjeta('El matiz de tu decanato', dec[id]);
     } else if (TEXTOS.enSigno[id]) {
@@ -597,8 +619,8 @@
         ? `${p.nombre} tarda ${astro.generacion} en cada signo: este rasgo lo compartes con la gente de tu edad. Lo personal lo marca su casa.`
         : '');
     }
-    if (p.casa) h += tarjeta('En tu casa ' + p.casa, fraseCasa(id, p.casa));
-    if (p.retro) h += tarjeta('Retrógrado', TEXTO_RETRO);
+    if (p.casa && id !== 'nodo' && id !== 'quiron') h += tarjeta('En tu casa ' + p.casa, fraseCasa(id, p.casa));
+    if (p.retro && id !== 'quiron') h += tarjeta('Retrógrado', TEXTO_RETRO);
     if (DE_LA_GUIA[id]) {
       h += tarjeta('Planeta regente · ' + esc(signo.regente.nombre), signo.regente.descripcion) +
         tarjeta('Compatibilidad', signo.compatibilidad) +
@@ -610,11 +632,33 @@
     if (DE_LA_GUIA[id] || id === 'lilith') {
       h += `<h2 class="titulo-col rosa">Lado oscuro</h2><p class="aviso-sombra">${TEXTO_SOMBRA}</p>${tarjetasSombra(c, id)}`;
     }
-    const suyos = c.aspectos.filter((x) => x.a.id === id || x.b.id === id).slice(0, 8);
-    h += `<h2 class="titulo-col">Cómo se lleva con el resto</h2>
-      <section class="tarjeta" style="gap: 0">${suyos.length ? suyos.map(renglonAspecto).join('')
-        : '<p>No forma aspectos mayores con otros puntos de tu carta: actúa por su cuenta.</p>'}</section>
-      </div></div><p class="nota">Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}, recopilación propia hecha con ayuda de inteligencia artificial (Gemini). El resto de los textos son borradores escritos con ayuda de inteligencia artificial (Claude).</p>`;
+    if (id === 'nodo') {
+      h += `<h2 class="titulo-col rosa">Cómo ocurre y cómo evitarlo</h2>` +
+        tarjeta('Cómo se nota que repites el Nodo Sur', nodos.ocurre, 'sombra') + tarjeta('Cómo salir de ahí', nodos.salir);
+    } else if (id === 'quiron') {
+      h += `<h2 class="titulo-col rosa">Cómo ocurre y cómo sanarla</h2><p class="aviso-sombra">${AVISO_QUIRON}</p>` +
+        tarjeta('Cómo se nota', herida.ocurre, 'sombra') + tarjeta('Cómo sanarla', herida.sanar);
+    }
+    if (id === 'nodo') {
+      // Los nodos no forman aspectos en esta app: se miran los astros pegados a ellos.
+      const pegados = [];
+      c.puntos.concat(c.angulos).filter((x) => !['nodo', 'nodosur', 'lilith'].includes(x.id)).forEach((x) => [p, sur].forEach((n) => {
+        const d = Math.abs(((x.lon - n.lon + 540) % 360) - 180);
+        if (d <= 6) pegados.push({ x: x, n: n, d: d });
+      }));
+      h += `<h2 class="titulo-col">Astros junto a tus nodos</h2><section class="tarjeta" style="gap: 0">${pegados.length
+        ? pegados.map((g) => `<div class="renglon"><span><b>${g.x.nombre}</b> junto a tu ${g.n.nombre}</span>
+            <span class="orbe">a ${A.textoOrbe(g.d)}</span><small>${esc(g.n.id === 'nodo'
+              ? `${mayuscula(TEXTOS.astros[g.x.id].corto)} es parte de tu camino: desarrollarlo te hace crecer.`
+              : `${mayuscula(TEXTOS.astros[g.x.id].corto)} es un talento que ya traes; úsalo, pero no te quedes solo ahí.`)}</small></div>`).join('')
+        : '<p>Ningún astro está pegado a tus nodos.</p>'}</section>`;
+    } else {
+      const suyos = c.aspectos.filter((x) => x.a.id === id || x.b.id === id).slice(0, 8);
+      h += `<h2 class="titulo-col">Cómo se lleva con el resto</h2>
+        <section class="tarjeta" style="gap: 0">${suyos.length ? suyos.map(renglonAspecto).join('')
+          : '<p>No forma aspectos mayores con otros puntos de tu carta: actúa por su cuenta.</p>'}</section>`;
+    }
+    h += `</div></div><p class="nota">Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}, recopilación propia hecha con ayuda de inteligencia artificial (Gemini). El resto de los textos son borradores escritos con ayuda de inteligencia artificial (Claude).</p>`;
     $('#vista-detalle').innerHTML = h;
   }
 
@@ -633,13 +677,13 @@
         <h1>Cielo de hoy</h1>
         <p class="subtitulo">Dónde está cada astro en este momento y qué puntos de tu carta toca.</p>
       </div></header>
-      <section class="col" style="flex: none"><h2 class="etiqueta tenue">Ahora</h2><div class="fichas">${cielo.puntos.map((p) =>
+      <section class="col" style="flex: none"><h2 class="etiqueta tenue">Ahora</h2><div class="fichas">${cielo.puntos.filter((p) => p.id !== 'nodosur').map((p) =>
         `<div class="ficha"><span class="glifo ${claseDe(p.id)}" aria-hidden="true">${glifo(p.id)}</span>
           <div><b>${p.nombre}${p.retro ? ' R' : ''}</b><span>${p.pos.texto}</span></div></div>`).join('')}</div></section>
       <div class="columnas"><section class="col"><h2 class="etiqueta tenue">Qué toca en tu carta</h2>`;
     if (estado.carta) {
       const natal = estado.carta.puntos.concat(estado.carta.angulos);
-      const toques = A.aspectos(cielo.puntos.filter((p) => p.id !== 'lilith'), natal, 3).slice(0, 8);
+      const toques = A.aspectos(cielo.puntos.filter((p) => !['lilith', 'nodo', 'nodosur'].includes(p.id)), natal, 3).slice(0, 8);
       h += toques.length ? toques.map((x) => `<article class="tarjeta">
           <span class="pastilla ${TENSOS[x.aspecto.id] ? 'tensa' : ''}">${x.aspecto.nombre} · orbe ${A.textoOrbe(x.orbe)}</span>
           <h3>${x.a.nombre} de hoy con tu ${x.b.nombre} natal</h3>
@@ -761,7 +805,7 @@
 
       <div class="columnas"><div class="col">${Rueda.dibujar(r)}${leyendaRueda(r)}</div>
       <div class="col"><section class="tarjeta" style="gap: 0"><h2 class="etiqueta" style="margin-bottom: 4px">Los planetas en tu año</h2>
-        ${r.puntos.filter((p) => !['sol', 'luna', 'lilith'].includes(p.id)).map((p) => `<div class="renglon">
+        ${r.puntos.filter((p) => !['sol', 'luna', 'lilith', 'nodosur'].includes(p.id)).map((p) => `<div class="renglon">
           <span><span class="simbolo ${claseDe(p.id)}" aria-hidden="true">${glifo(p.id)}</span> <b>${p.nombre}</b> en ${p.pos.texto}${p.retro ? ' R' : ''}</span>
           <span class="orbe">casa ${p.casa}</span>
           <small>Este año, ${TEXTOS.astros[p.id].corto} se juega sobre todo en ${TEXTOS.casasCorto[p.casa]}.</small></div>`).join('')}
@@ -876,6 +920,25 @@
       ${parrafo('Lilith en ' + sl.nombre, sl.lilith, 'sombra')}
       ${lil.casa ? parrafo('En tu casa ' + lil.casa, fraseCasa('lilith', lil.casa)) : ''}
       ${aspectosDe('lilith')}</div>`;
+
+    // --- Nodos lunares y Quirón ---
+    const no = puntoDe('nodo'), ns = puntoDe('nodosur'), tn = TEXTOS.nodos[no.pos.signo];
+    h += `<h2>Los nodos lunares: tu camino</h2><div class="inf-astro">${cabeceraAstro(no, GUIA.signos[no.pos.signo])}
+      ${parrafo('Qué son', TEXTO_NODOS)}
+      ${parrafo('Tu camino', tn.camino)}
+      ${parrafo('Lo que arrastras (Nodo Sur en ' + GUIA.signos[ns.pos.signo].nombre + ')', tn.arrastras, 'sombra')}
+      ${parrafo('Cómo se nota que repites el Nodo Sur', tn.ocurre)}
+      ${parrafo('Cómo salir de ahí', tn.salir)}
+      ${no.casa ? parrafo('En tus casas', `Tu camino pasa por ${TEXTOS.casasCorto[no.casa]} (casa ${no.casa}); lo que tiendes a repetir está en ${TEXTOS.casasCorto[ns.casa]} (casa ${ns.casa}).`) : ''}</div>`;
+    const qu = puntoDe('quiron'), tq = TEXTOS.quiron[qu.pos.signo];
+    h += `<h2>Quirón: la herida que sana</h2><div class="inf-astro">${cabeceraAstro(qu, GUIA.signos[qu.pos.signo])}
+      ${parrafo('Qué es', TEXTO_QUIRON)}
+      ${parrafo('La herida', tq.herida, 'sombra')}
+      ${parrafo('Cómo se nota', tq.ocurre)}
+      ${parrafo('Cómo sanarla', tq.sanar)}
+      ${qu.casa ? parrafo('En tu casa ' + qu.casa, `La herida se nota sobre todo en ${TEXTOS.casasCorto[qu.casa]}, y ahí también está tu don para ayudar.`) : ''}
+      <p>${AVISO_QUIRON}</p>
+      ${aspectosDe('quiron')}</div>`;
 
     // --- Planetas ---
     h += '<h2>Tus planetas</h2>';

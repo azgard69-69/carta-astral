@@ -1,7 +1,7 @@
 /* Carta Astral — motor de cálculo astronómico.
- * Sin dependencias: fórmulas de Jean Meeus (Sol, Luna, casas) y elementos
- * keplerianos del JPL para los planetas (válidos de 1800 a 2050).
- * Precisión aproximada: Sol 0,01°, Luna 0,05°, planetas 0,2° como máximo.
+ * Sin dependencias: teoría VSOP87 para el Sol, fórmulas de Jean Meeus (Luna, nodos, casas)
+ * y elementos keplerianos del JPL para los planetas y Quirón (válidos de 1800 a 2050).
+ * Precisión aproximada: Sol menos de 1″, Luna 0,05°, planetas 0,2° como máximo, Quirón unas décimas.
  */
 (function (g) {
   'use strict';
@@ -173,6 +173,12 @@
     return n360(83.3532465 + 4069.0137287 * T - 0.0103200 * T * T + 180);
   }
 
+  // Nodo Norte medio: el punto donde la órbita de la Luna cruza la eclíptica hacia el norte (Meeus 47.7).
+  // El Nodo Sur está siempre enfrente. Los eclipses ocurren cuando Sol y Luna se juntan cerca de ellos.
+  function lonNodo(T) {
+    return n360(125.0445479 - 1934.1362891 * T + 0.0020754 * T * T + T * T * T / 467441 - T * T * T * T / 60616000);
+  }
+
   // ---------- Planetas ----------
 
   // a, e, I, L, perihelio, nodo y su variación por siglo (JPL, 1800-2050).
@@ -194,7 +200,10 @@
     neptuno: [30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574,
       0.00026291, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664],
     pluton: [39.48211675, 0.24882730, 17.14001206, 238.92903833, 224.06891629, 110.30393684,
-      -0.00031596, 0.00005170, 0.00004818, 145.20780515, -0.04062942, -0.01183482]
+      -0.00031596, 0.00005170, 0.00004818, 145.20780515, -0.04062942, -0.01183482],
+    // Quirón (asteroide 2060): órbita osculante, perihelio el 14 feb 1996. Comprobada con sus
+    // entradas en signo de 2005 a 2026, con menos de 0,1° de diferencia.
+    quiron: [13.648, 0.3801, 6.93, 216.489177, 188.78, 209.38, 0, 0, 0, 713.987778, 0, 0]
   };
 
   // Posición heliocéntrica (x, y, z) en unidades astronómicas.
@@ -335,6 +344,12 @@
       puntos.push({ id: p[0], nombre: p[1], lon: lon, retro: mov < 0 });
     });
     puntos.push({ id: 'lilith', nombre: 'Lilith', lon: lonLilith(T), retro: false });
+    var lonQ = lonPlaneta('quiron', jdTT);
+    var movQ = n360(lonPlaneta('quiron', jdTT + 0.5) - lonPlaneta('quiron', jdTT - 0.5) + 180) - 180;
+    puntos.push({ id: 'quiron', nombre: 'Quirón', lon: lonQ, retro: movQ < 0 });
+    var nodo = lonNodo(T);
+    puntos.push({ id: 'nodo', nombre: 'Nodo Norte', lon: nodo, retro: false });
+    puntos.push({ id: 'nodosur', nombre: 'Nodo Sur', lon: n360(nodo + 180), retro: false });
 
     var cs = null, angulos = [];
     if (!o.sinHora) {
@@ -350,7 +365,7 @@
     return {
       jd: jd, puntos: puntos, angulos: angulos, casas: cs,
       horaSolar: o.sinHora ? null : horaSolar(jd, o.lon, puntos[0].lon),
-      aspectos: aspectos(puntos.concat(angulos))
+      aspectos: aspectos(puntos.filter(function (p) { return p.id !== 'nodo' && p.id !== 'nodosur'; }).concat(angulos))
     };
   }
 
@@ -365,6 +380,19 @@
       var falta = n360(lonNatal - lonSol(T) + 180) - 180;
       ms += falta / 0.98565 * 86400000;
       if (Math.abs(falta) < 1e-6) break;
+    }
+    return ms;
+  }
+
+  // Instante (ms UTC) en que la Luna vuelve a la longitud «lonNatal», buscando cerca de «msAprox».
+  // Pasa cada 27,3 días; desde cualquier fecha se llega al retorno más cercano.
+  function retornoLunar(lonNatal, msAprox) {
+    var ms = msAprox;
+    for (var i = 0; i < 20; i++) {
+      var T = (diaJuliano(ms) + deltaT(new Date(ms).getUTCFullYear()) / 86400 - 2451545) / 36525;
+      var falta = n360(lonNatal - lonLuna(T) + 180) - 180;
+      ms += falta / 13.176358 * 86400000;
+      if (Math.abs(falta) < 1e-5) break;
     }
     return ms;
   }
@@ -403,7 +431,7 @@
     lonSol: lonSol, lonLuna: lonLuna, lonLilith: lonLilith, lonPlaneta: lonPlaneta,
     casas: casas, casaDe: casaDe, horaSolar: horaSolar, posicion: posicion, textoOrbe: textoOrbe,
     aspectos: aspectos, calcularCarta: calcularCarta, proximosEventos: proximosEventos,
-    retornoSolar: retornoSolar
+    retornoSolar: retornoSolar, retornoLunar: retornoLunar, lonNodo: lonNodo
   };
   g.Astro = Astro;
   if (typeof module !== 'undefined' && module.exports) module.exports = Astro;

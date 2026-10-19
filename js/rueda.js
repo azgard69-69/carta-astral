@@ -9,7 +9,7 @@
   const TXT = '\uFE0E'; // pide al sistema el símbolo como texto, no como emoji
   const SIMBOLO = {
     sol: '☉', luna: '☽', mercurio: '☿', venus: '♀', marte: '♂', jupiter: '♃',
-    saturno: '♄', urano: '♅', neptuno: '♆', pluton: '♇', lilith: '⚸'
+    saturno: '♄', urano: '♅', neptuno: '♆', pluton: '♇', lilith: '⚸', quiron: '⚷', nodo: '☊', nodosur: '☋'
   };
   const SIGNO_SIMBOLO = '♈♉♊♋♌♍♎♏♐♑♒♓';
   const glifo = (id) => SIMBOLO[id] ? SIMBOLO[id] + TXT : '';
@@ -118,7 +118,8 @@
 
     // Planetas: fichas por dentro del anillo, separadas para que no se encimen.
     const radioFicha = (ang) => Math.max(int(ang) - 17, R.tierra + 15);
-    const fichas = carta.puntos.slice(2).map((p) => ({ id: p.id, real: fi(p.lon), vis: fi(p.lon) }));
+    // El Nodo Sur no se dibuja: está siempre enfrente del Norte.
+    const fichas = carta.puntos.slice(2).filter((p) => p.id !== 'nodosur').map((p) => ({ id: p.id, real: fi(p.lon), vis: fi(p.lon) }));
     fichas.sort((a, b) => a.real - b.real);
     for (let vuelta = 0; vuelta < 300; vuelta++) {
       let movido = false;

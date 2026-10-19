@@ -53,7 +53,8 @@
 
   // ---------- Lugar ----------
   // Hay dos listas: la propia (js/ciudades.js, con nombres en español) y la mundial de GeoNames
-  // (js/ciudades-mundo.js, unas 34.000 ciudades), que solo se carga al usar el campo de lugar.
+  // (js/ciudades-mundo.js, unas 170.000 ciudades y pueblos de más de 1.000 habitantes), que solo se
+  // carga al usar el campo de lugar.
 
   const etiquetaCiudad = (c) => c[0] + ', ' + c[1];
   let paises = null;
@@ -69,19 +70,58 @@
     guion.src = 'js/ciudades-mundo.js';
     guion.onload = () => {
       const M = window.CIUDADES_MUNDO, lineas = M.datos.split('\n');
-      mundo = { lineas: lineas, zonas: M.zonas, claves: lineas.map((l) => Num.normalizar(l.slice(0, l.indexOf('|')))) };
+      // Casi todos los nombres van sin acentos: solo esos pocos pasan por la normalización completa, que es lenta.
+      const clave = (t) => /[^ -~]/.test(t) ? Num.normalizar(t) : t.toLowerCase();
+      const claves = lineas.map((l) => clave(l.slice(0, l.indexOf('|'))));
+      // Todos los nombres en un solo texto, uno por renglón: buscar ahí con indexOf es mucho más
+      // rápido que mirar las 170.000 líneas una por una en cada tecla.
+      const inicios = new Int32Array(claves.length);
+      let pos = 1;
+      claves.forEach((c, i) => { inicios[i] = pos; pos += c.length + 1; });
+      mundo = { lineas: lineas, zonas: M.zonas, claves: claves, inicios: inicios, texto: '\n' + claves.join('\n') + '\n' };
       if (document.activeElement === $('#lugar')) sugerir();
     };
     guion.onerror = () => { cargandoMundo = false; };
     document.head.appendChild(guion);
   }
 
+  // Para comparar: sin acentos ni mayúsculas, y las comas como espacios («Morelia, México» = «morelia mexico»).
+  const limpiar = (t) => Num.normalizar(t).replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+  const paisLimpio = {}, regionLimpia = {};
+  let propias = null;
+
+  // Número de la línea del mundo que contiene la posición «pos» del texto de nombres.
+  function lineaEn(pos) {
+    const ini = mundo.inicios;
+    let a = 0, b = ini.length - 1;
+    while (a < b) {
+      const m = (a + b + 1) >> 1;
+      if (ini[m] <= pos) a = m; else b = m - 1;
+    }
+    return a;
+  }
+
+  // Recorre en orden (de más a menos poblada) las líneas cuyo nombre contiene «trozo».
+  // Si «trozo» empieza con salto de línea, solo las que empiezan así. Se detiene cuando «cada» devuelve false.
+  function recorrer(trozo, cada) {
+    let desde = 0, ultima = -1;
+    for (;;) {
+      const p = mundo.texto.indexOf(trozo, desde);
+      if (p < 0) return;
+      const i = lineaEn(trozo[0] === '\n' ? p + 1 : p);
+      desde = p + 1;
+      if (i !== ultima && cada(i) === false) return;
+      ultima = i;
+    }
+  }
+
   // Hasta ocho lugares que coinciden con lo escrito: primero los de la lista propia, luego
-  // los del mundo, de la ciudad más poblada a la menos.
+  // los del mundo, de la ciudad más poblada a la menos. Tras el nombre se puede escribir el
+  // estado o el país para distinguir lugares que se llaman igual: «San José Chiapas».
   function buscarLugares(texto) {
-    const q = Num.normalizar(texto).trim(), res = [], MAXIMO = 8;
+    const q = limpiar(texto), res = [], MAXIMO = 8;
     if (q.length < 2) return res;
-    const propias = CIUDADES.map((c) => ({ c: c, clave: Num.normalizar(etiquetaCiudad(c)) }));
+    if (!propias) propias = CIUDADES.map((c) => ({ c: c, clave: limpiar(etiquetaCiudad(c)) }));
     propias.filter((p) => p.clave.startsWith(q)).concat(propias.filter((p) => !p.clave.startsWith(q) && p.clave.includes(q)))
       .slice(0, MAXIMO).forEach((p) => res.push({ etiqueta: etiquetaCiudad(p.c), lat: p.c[2], lon: p.c[3], zona: p.c[4] }));
     if (mundo) {
@@ -91,10 +131,26 @@
         if (repetida(lat, lon)) return;
         res.push({ etiqueta: [p[0], p[1], nombrePais(p[2])].filter(Boolean).join(', '), lat: lat, lon: lon, zona: mundo.zonas[Number(p[5])] });
       };
-      for (let i = 0; i < mundo.claves.length && res.length < MAXIMO; i++) if (mundo.claves[i].startsWith(q)) agregar(i);
-      for (let i = 0; i < mundo.claves.length && res.length < MAXIMO; i++) {
-        if (!mundo.claves[i].startsWith(q) && mundo.claves[i].includes(q)) agregar(i);
+      const sigue = () => res.length < MAXIMO;
+      // 1. El nombre empieza por lo escrito.
+      recorrer('\n' + q, (i) => { agregar(i); return sigue(); });
+      // 2. Nombre seguido del estado o el país: «san jose chiapas», «guadalajara, españa».
+      const palabras = q.split(' ');
+      if (palabras.length > 1 && sigue()) {
+        recorrer('\n' + palabras[0], (i) => {
+          const c = mundo.claves[i];
+          if (!c.startsWith(q)) {
+            const p = mundo.lineas[i].split('|');
+            if (!(p[2] in paisLimpio)) paisLimpio[p[2]] = limpiar(nombrePais(p[2]) + ' ' + p[2]);
+            if (!(p[1] in regionLimpia)) regionLimpia[p[1]] = limpiar(p[1]);
+            const lugar = ' ' + c + ' ' + regionLimpia[p[1]] + ' ' + paisLimpio[p[2]];
+            if (palabras.every((w) => lugar.includes(' ' + w))) agregar(i);
+          }
+          return sigue();
+        });
       }
+      // 3. El nombre contiene lo escrito en otra parte: «tlaquepaque» encuentra «San Pedro Tlaquepaque».
+      if (q.length >= 3 && sigue()) recorrer(q, (i) => { if (!mundo.claves[i].startsWith(q)) agregar(i); return sigue(); });
     }
     return res;
   }
@@ -303,15 +359,64 @@
     return !c.casas ? 'sin casas' : c.casas.sistema === 'placidus' ? 'casas Placidus' : 'casas iguales';
   }
 
+  // ---------- Significado del nombre ----------
+
+  // Una misma forma para las variantes de escritura: Mitzy y Mitzi, Lizbeth y Lisbeth, Jhonatan y Jonathan…
+  const esqueleto = (t) => t.replace(/ph/g, 'f').replace(/([^cs])h/g, '$1').replace(/^h/, '')
+    .replace(/y/g, 'i').replace(/k/g, 'c').replace(/z/g, 's').replace(/v/g, 'b').replace(/(.)\1+/g, '$1');
+  let porEsqueleto = null;
+
+  // Devuelve [origen, significado, nombre base o null] para una palabra del nombre, o null si no se conoce.
+  // En js/nombres.js una entrada puede ser solo texto: entonces es otra forma de escribir ese nombre.
+  function buscarNombre(palabra) {
+    const clave = Num.normalizar(palabra);
+    let dato = NOMBRES[clave], base = null;
+    if (!dato) {
+      if (!porEsqueleto) {
+        porEsqueleto = {};
+        Object.keys(NOMBRES).forEach((k) => {
+          const e = esqueleto(k);
+          if (!porEsqueleto[e] || typeof NOMBRES[porEsqueleto[e]] === 'string') porEsqueleto[e] = k;
+        });
+      }
+      const parecido = porEsqueleto[esqueleto(clave)];
+      if (!parecido) return null;
+      dato = NOMBRES[parecido];
+      base = typeof dato === 'string' ? dato : mayuscula(parecido);
+    }
+    if (typeof dato === 'string') {
+      base = dato;
+      dato = NOMBRES[Num.normalizar(dato)];
+    }
+    return Array.isArray(dato) ? [dato[0], dato[1], base] : null;
+  }
+
+  const PARTICULAS = ['de', 'del', 'la', 'las', 'los', 'y', 'e'];
+  const ABREVIATURAS = { ma: 'María', 'mª': 'María' };
+
+  // Significado de cada nombre de pila (María José → los dos).
+  function significadosNombre(nombre) {
+    const hallados = [], faltan = [];
+    String(nombre || '').replace(/[.,;]/g, ' ').trim().split(/\s+/).filter((w) => w && !PARTICULAS.includes(Num.normalizar(w))).forEach((w) => {
+      w = ABREVIATURAS[Num.normalizar(w)] || w;
+      const n = mayuscula(w.toLowerCase()), dato = buscarNombre(w);
+      if (dato) hallados.push(`${n}${dato[2] ? ` (variante de ${dato[2]})` : ''}: ${dato[0]}. ${dato[1]}`);
+      else faltan.push(n);
+    });
+    if (hallados.length && faltan.length) {
+      hallados.push(`Aún no tengo el significado de ${faltan.join(' ni de ')}.`);
+    }
+    return hallados;
+  }
+
   // Significado del nombre y los tres números. Devuelve los datos; cada vista los pinta a su manera.
   function datosNombre(d) {
     const f = d.fecha.split('-').map(Number);
     const completo = nombreCompleto(d);
-    const dato = d.nombre ? NOMBRES[Num.normalizar(d.nombre).split(/\s+/)[0]] : null;
     const conApellidos = d.apellidos ? 'nombre y apellidos' : 'nombre';
     return {
       completo: completo,
-      significado: dato ? `${d.nombre.split(/\s+/)[0]}: ${dato[0]}. ${dato[1]}` : null,
+      significados: significadosNombre(d.nombre),
       numeros: [
         ['Camino de vida', Num.caminoDeVida(f[2], f[1], f[0]), 'De tu fecha de nacimiento.'],
         ['Expresión', completo ? Num.expresion(completo) : null, `De todas las letras de tu ${conApellidos}.`],
@@ -324,9 +429,9 @@
     const n = datosNombre(d);
     let cab;
     if (n.completo) {
-      cab = `<p class="nombre-grande">${esc(n.completo)}</p><p class="subtitulo">` + (n.significado
-        ? esc(n.significado)
-        : (d.nombre ? 'Aún no tengo el significado de este nombre; sus números sí se calculan.' : '')) + '</p>';
+      cab = `<p class="nombre-grande">${esc(n.completo)}</p>` + (n.significados.length
+        ? n.significados.map((t) => `<p class="subtitulo">${esc(t)}</p>`).join('')
+        : (d.nombre ? '<p class="subtitulo">Aún no tengo el significado de este nombre; sus números sí se calculan.</p>' : ''));
       if (!d.apellidos) cab += '<p class="nota">Añade tus apellidos en «Mis datos» para que expresión y alma se calculen con tu nombre completo.</p>';
     } else {
       cab = '<p class="subtitulo">Escribe tu nombre en «Mis datos» para ver su significado y sus números.</p>';
@@ -662,7 +767,7 @@
 
     // --- Nombre y numerología ---
     h += '<h2>Tu nombre y tus números</h2>';
-    if (n.significado) h += `<p><b>Tu nombre.</b> ${esc(n.significado)}</p>`;
+    if (n.significados.length) h += `<p><b>Tu nombre.</b> ${n.significados.map(esc).join(' ')}</p>`;
     else if (d.nombre) h += '<p>Aún no tengo el significado de este nombre; sus números sí se calculan.</p>';
     h += '<div class="inf-numeros">' + n.numeros.map((x) => `<div class="inf-bloque"><span class="inf-cifra">${x[1] === null ? '—' : x[1]}</span>
       <b>${x[0]}</b><p>${x[2]}${x[1] === null ? ' Falta el nombre para calcularlo.' : ' ' + Num.SIGNIFICADOS[x[1]]}</p></div>`).join('') + '</div>' +

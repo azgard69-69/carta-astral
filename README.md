@@ -48,7 +48,7 @@ usarlos, el nombre con sus números y la tabla de posiciones. Para obtener un PD
 
 ## Música de fondo
 
-El reproductor flota abajo a la derecha. La música empieza encendida; **Pausar música** la detiene
+El reproductor está en el menú, debajo de «Mis datos». La música empieza encendida; **Pausar música** la detiene
 y la app recuerda esa elección. El botón de al lado abre la melodía y el volumen. Los navegadores no
 dejan sonar nada hasta el primer clic, así que a veces arranca al tocar la página.
 
@@ -76,9 +76,9 @@ de la app.
 | `js/numerologia.js` | Camino de vida, expresión y alma. |
 | `js/guia.js` | Los textos de la guía, convertidos para la app. **No se edita a mano.** |
 | `js/textos.js` | Textos en lenguaje llano de planetas, casas y aspectos. Borrador; se edita a mano. |
-| `js/nombres.js` | Significado de unos 700 nombres (español e inglés). Borrador; se edita a mano. |
+| `js/nombres.js` | Significado de unos 1.240 nombres (español, inglés, náhuatl, maya y otros) y sus variantes de escritura. Borrador; se edita a mano. |
 | `js/ciudades.js` | Lista propia de 119 ciudades, con sus nombres en español. |
-| `js/ciudades-mundo.js` | Unas 34.000 ciudades del mundo (GeoNames). **No se edita a mano.** |
+| `js/ciudades-mundo.js` | Unas 170.000 ciudades y pueblos del mundo de más de 1.000 habitantes (GeoNames). **No se edita a mano.** |
 | `js/app.js` | Une el formulario, los cálculos y los textos. |
 | `letras/` | La letra cursiva de los títulos (Courgette) y su licencia. |
 | `iconos/` | El icono de la app. |
@@ -137,4 +137,4 @@ La app es gratuita y lo seguirá siendo. Todavía no hay un enlace para donar; c
 - Que alguien que sepa de astrología revise los borradores de `js/textos.js` y `js/nombres.js`.
 - Programas instaladores de verdad (`.exe` para Windows, `.AppImage` para Linux): se pueden
   generar gratis desde GitHub una vez que el proyecto esté allí.
-- Publicarla en GitHub.
+- Hacer público el repositorio de GitHub y publicar la app en GitHub Pages (por ahora es privado).

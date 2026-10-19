@@ -40,7 +40,7 @@ button, input, select { font-family: inherit; }
 /* ---------- Estructura ---------- */
 .app { min-height: 100vh; display: flex; flex-wrap: wrap; }
 .menu {
-  flex: 1 1 220px; padding: 28px 16px; background: var(--tarjeta);
+  flex: 1 1 240px; padding: 28px 16px; background: var(--tarjeta);
   display: flex; flex-direction: column; gap: 20px;
 }
 .marca { padding: 0 12px; font-family: var(--titulo); font-size: 24px; line-height: 30px; }
@@ -54,12 +54,8 @@ button, input, select { font-family: inherit; }
 .menu-lista button[aria-current="page"] { background: var(--realce); color: var(--oro); font-weight: 700; }
 .menu-lista svg { width: 20px; height: 20px; flex-shrink: 0; }
 .menu-nota { padding: 0 12px; font-size: 12px; line-height: 17px; color: var(--tenue); }
-/* Reproductor de música flotante: siempre a la vista, abajo a la derecha. */
-.musica {
-  position: fixed; right: 16px; bottom: 16px; z-index: 20; display: flex; flex-direction: column; gap: 8px;
-  max-width: 270px; padding: 8px; background: var(--tarjeta); border: 1px solid var(--oro); border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
+/* Música de fondo: dentro del menú, debajo de «Mis datos». */
+.musica { display: flex; flex-direction: column; gap: 8px; padding: 6px; border: 1px solid var(--linea); border-radius: 12px; }
 .musica-fila { display: flex; gap: 6px; }
 .musica button {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px;
@@ -68,9 +64,9 @@ button, input, select { font-family: inherit; }
 }
 .musica button:hover { color: var(--oro); border-color: var(--oro); }
 .musica button svg { width: 18px; height: 18px; flex-shrink: 0; }
-#musica-boton { flex-grow: 1; }
+#musica-boton { flex-grow: 1; gap: 6px; padding: 0 12px; white-space: nowrap; }
 #musica-boton[aria-pressed="true"] { background: var(--realce); border-color: var(--oro); color: var(--oro); }
-#musica-mas { width: 44px; padding: 0; }
+#musica-mas { width: 40px; padding: 0; }
 #musica-opciones { display: flex; flex-direction: column; gap: 6px; padding: 0 4px 4px; }
 .musica label { font-size: 12px; color: var(--tenue); }
 .musica select { height: 40px; padding: 0 10px; font-size: 13px; }
@@ -78,7 +74,7 @@ button, input, select { font-family: inherit; }
 #musica-aviso { padding: 0 4px 2px; }
 #musica-aviso:empty { display: none; }
 body.ver-informe .musica { display: none; }
-main { flex: 999 1 560px; min-width: 0; padding: 32px 32px 96px; }
+main { flex: 999 1 560px; min-width: 0; padding: 32px 32px 48px; }
 .vista { display: flex; flex-direction: column; gap: 24px; }
 .columnas { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
 .col { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
@@ -297,6 +293,22 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
   html, body { background: #fff !important; }
   .app, .musica { display: none !important; }
   .informe { display: block !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+/* Canales de interés, en «Cómo se lee». */
+.canales ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 0; padding: 0; list-style: none; }
+.canales a {
+  display: grid; grid-template-columns: 24px 1fr; gap: 4px 10px; height: 100%; padding: 12px 14px;
+  border: 1px solid var(--linea); border-radius: 12px; color: var(--texto); text-decoration: none;
+}
+.canales a:hover { border-color: var(--oro); }
+.canales svg { width: 24px; height: 24px; color: var(--oro); }
+.canales b { align-self: center; color: var(--oro); }
+.canales span { grid-column: 2; font-size: 13px; line-height: 19px; color: var(--tenue); }
+
+/* Con el menú a un lado, este acompaña al desplazarse: así la música queda siempre a mano. */
+@media (min-width: 820px) {
+  .menu { position: sticky; top: 0; align-self: flex-start; height: 100vh; overflow-y: auto; }
 }
 
 @media (max-width: 560px) {

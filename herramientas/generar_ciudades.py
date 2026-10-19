@@ -2,9 +2,10 @@
 """Convierte la base de ciudades de GeoNames en js/ciudades-mundo.js.
 
 Uso:
-    python3 herramientas/generar_ciudades.py cities15000.zip admin1CodesASCII.txt js/ciudades-mundo.js
+    python3 herramientas/generar_ciudades.py cities1000.zip admin1CodesASCII.txt js/ciudades-mundo.js
 
 Los dos primeros archivos se descargan de https://download.geonames.org/export/dump/
+(cities1000 = lugares de más de 1.000 habitantes; hay también cities500, cities5000 y cities15000).
 GeoNames se distribuye con licencia Creative Commons Atribución 4.0: hay que citar la fuente.
 
 Cada ciudad queda en una línea:  nombre|estado o provincia|país (código)|latitud|longitud|zona

@@ -31,6 +31,24 @@
       Mis datos
     </button>
   </div>
+  <!-- Música de fondo, debajo de «Mis datos» -->
+  <div class="musica" role="group" aria-label="Música de fondo">
+    <div class="musica-fila">
+      <button type="button" id="musica-boton" aria-pressed="false">Poner música</button>
+      <button type="button" id="musica-mas" aria-expanded="false" aria-controls="musica-opciones" aria-label="Elegir melodía y volumen">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <div id="musica-opciones" hidden>
+      <label for="musica-melodia">Melodía</label>
+      <select id="musica-melodia"></select>
+      <label for="musica-volumen">Volumen</label>
+      <input id="musica-volumen" type="range" min="0" max="100" value="50">
+      <span class="nota">Todas las melodías están afinadas en 432 Hz.</span>
+    </div>
+    <input id="musica-archivos" type="file" accept="audio/*" multiple hidden>
+    <span id="musica-aviso" class="nota" aria-live="polite"></span>
+  </div>
   <p class="menu-nota">Todo se guarda en este equipo. Funciona sin internet.<br>Software libre, licencia GPL v3.</p>
 </nav>
 
@@ -193,30 +211,23 @@
       </div>
     </section>
   </div>
+  <section class="tarjeta canales" aria-labelledby="canales-titulo">
+    <h2 id="canales-titulo" class="etiqueta">Canales de interés</h2>
+    <p class="nota">Para seguir aprendiendo de astrología y tarot. Son canales de YouTube de otras personas: se abren en tu navegador y necesitan internet.</p>
+    <ul>
+      <li><a href="https://www.youtube.com/@MarylCelizPazenEspa%C3%B1ol" target="_blank" rel="noopener noreferrer">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.6 2.6 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.6 2.6 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg><b>Maryl Celiz Paz</b><span>Astrología del mes: tránsitos, lunas nuevas y llenas, explicados por una astrocoach.</span></a></li>
+      <li><a href="https://www.youtube.com/@Jacobtarot" target="_blank" rel="noopener noreferrer">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.6 2.6 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.6 2.6 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg><b>Jacob Tarot</b><span>Lecturas de tarot espiritual para cada signo, sobre todo de amor.</span></a></li>
+      <li><a href="https://www.youtube.com/@CordeliaTarot" target="_blank" rel="noopener noreferrer">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.6 2.6 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.6 2.6 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg><b>Cordelia Tarot</b><span>Taróloga y astróloga: lecturas por signo sobre amor, bloqueos y decisiones.</span></a></li>
+    </ul>
+  </section>
   <p class="nota">Créditos. Tríada, decanatos, sombras y Lilith: Guía Magna de Astrología. Ciudades: GeoNames (geonames.org), licencia CC BY 4.0.
   Letra de los títulos: Courgette, licencia OFL. Carta Astral © 2026 Siddhartha, software libre bajo licencia GNU GPL versión 3.</p>
 </section>
 
 </main>
-</div>
-
-<!-- Reproductor de música: siempre a la vista, abajo a la derecha -->
-<div class="musica" role="group" aria-label="Música de fondo">
-  <div class="musica-fila">
-    <button type="button" id="musica-boton" aria-pressed="false">Poner música</button>
-    <button type="button" id="musica-mas" aria-expanded="false" aria-controls="musica-opciones" aria-label="Elegir melodía y volumen">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
-    </button>
-  </div>
-  <div id="musica-opciones" hidden>
-    <label for="musica-melodia">Melodía</label>
-    <select id="musica-melodia"></select>
-    <label for="musica-volumen">Volumen</label>
-    <input id="musica-volumen" type="range" min="0" max="100" value="50">
-    <span class="nota">Todas las melodías están afinadas en 432 Hz.</span>
-  </div>
-  <input id="musica-archivos" type="file" accept="audio/*" multiple hidden>
-  <span id="musica-aviso" class="nota" aria-live="polite"></span>
 </div>
 
 <!-- Informe para imprimir o guardar en PDF: lo rellena js/app.js y solo se ve al imprimir -->

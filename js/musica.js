@@ -1,7 +1,8 @@
 /* Carta Astral — música de fondo.
- * Las melodías no son archivos: el sonido se genera en el momento, nota por nota,
- * así que no pesa nada ni tiene derechos de autor, y nunca se repite igual.
- * También puede tocar música propia elegida del equipo (no se guarda ni se sube a ningún sitio).
+ * Las melodías no son archivos: el sonido se genera en el momento, nota por nota, así que no pesa
+ * nada. Todas son de dominio público (las de Satie y Vivaldi, con notas de las ediciones del Mutopia Project).
+ * También puede tocar música propia del equipo, afinada a 432 Hz si se quiere; se guarda solo en ese
+ * navegador y no se sube a ningún sitio.
  */
 (function (g) {
   'use strict';
@@ -185,6 +186,80 @@
   const LA = 432;
   const la432 = (f) => f * LA / 440;
 
+  // ---------- Partituras ----------
+
+  // Número MIDI de una nota escrita como «F#5», «Bb3» o «C4» (60 = do central).
+  const PASOS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  function nota(texto) {
+    const m = /^([A-G])(#|b)?(-?\d)$/.exec(texto);
+    return 12 * (Number(m[3]) + 1) + PASOS[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  }
+  const hz = (midi) => LA * Math.pow(2, (midi - 69) / 12);
+
+  // Escribe una voz en la lista de eventos. «texto»: notas separadas por espacios, «:n» para durar n
+  // unidades (1 por omisión), «*n» para repetir la nota n veces, «r» para un silencio y «+» para
+  // tocar varias a la vez («C4+E4+A4»). Devuelve dónde termina.
+  function voz(eventos, texto, desde, vol, extra) {
+    let p = desde;
+    texto.trim().split(/\s+/).forEach((x) => {
+      const rep = /\*(\d+)$/.exec(x), veces = rep ? Number(rep[1]) : 1;
+      const [n, d] = x.replace(/\*\d+$/, '').split(':'), dur = Number(d || 1);
+      for (let k = 0; k < veces; k++) {
+        if (n !== 'r') eventos.push(Object.assign({ b: p, d: dur, m: n.split('+').map(nota), v: vol }, extra || {}));
+        p += dur;
+      }
+    });
+    return p;
+  }
+
+  // Toca en bucle una lista de eventos; «unidad» son los segundos de cada unidad de tiempo y «largo»
+  // las unidades que dura una vuelta. Si la pestaña se durmió y se quedó atrás, sigue desde ahora.
+  function secuencia(ctx, eventos, unidad, largo, tocar) {
+    eventos.sort((x, y) => x.b - y.b);
+    let ciclo = ctx.currentTime + 0.5, i = 0;
+    return (hasta) => {
+      for (;;) {
+        if (i >= eventos.length) { ciclo += largo * unidad; i = 0; }
+        const e = eventos[i];
+        let t = ciclo + e.b * unidad;
+        if (t < ctx.currentTime) { ciclo += ctx.currentTime + 0.2 - t; t = ciclo + e.b * unidad; }
+        if (t >= hasta) return;
+        tocar(e, t);
+        i++;
+      }
+    };
+  }
+
+  // Piano suave, como con el pedal pisado: entra de golpe y se apaga despacio.
+  function piano(ctx, salida, midi, t, dur, vol) {
+    const f = hz(midi);
+    tono(ctx, salida, { f: f, t: t, dur: dur, vol: vol, tipo: 'triangle', ataque: 0.012, caida: dur });
+    tono(ctx, salida, { f: f * 2, t: t, dur: dur * 0.6, vol: vol * 0.18, ataque: 0.012, caida: dur * 0.6 });
+  }
+
+  // Cuerda frotada (violín, viola, chelo): una onda rica en armónicos, suavizada con un filtro;
+  // dos voces casi iguales para que suene a grupo, y algo de vibrato en las notas largas.
+  function cuerda(ctx, salida, midi, t, dur, vol) {
+    const f = hz(midi), fin = t + dur, filtro = ctx.createBiquadFilter(), amp = ctx.createGain();
+    filtro.type = 'lowpass'; filtro.frequency.value = Math.min(f * 5, 4500); filtro.Q.value = 0.7;
+    amp.gain.setValueAtTime(0.0001, t);
+    amp.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.012, dur / 3));
+    amp.gain.setValueAtTime(vol, Math.max(t + 0.013, fin - 0.04));
+    amp.gain.exponentialRampToValueAtTime(0.0001, fin + 0.03);
+    filtro.connect(amp); amp.connect(salida);
+    [-6, 6].forEach((centesimas) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = f; osc.detune.value = centesimas;
+      if (dur > 0.3) {
+        const temblor = ctx.createOscillator(), hondura = ctx.createGain();
+        temblor.frequency.value = 5.5; hondura.gain.value = 9;
+        temblor.connect(hondura); hondura.connect(osc.detune);
+        temblor.start(t); temblor.stop(fin + 0.1);
+      }
+      osc.connect(filtro); osc.start(t); osc.stop(fin + 0.1);
+    });
+  }
+
   // ---------- Las melodías ----------
   // Cada una devuelve una función que programa las notas que faltan hasta el instante pedido.
 
@@ -325,6 +400,81 @@
             compas += COMPAS; n++;
           }
         };
+      }
+    },
+
+    satie: {
+      nombre: 'Gymnopédie n.º 1 (Satie)',
+      crear(ctx, salida) {
+        // Erik Satie, 1888 (dominio público). Notas de la edición del Mutopia Project (dominio público).
+        // La pieza completa, con su repetición: 78 compases de tres pulsos, «lento y doloroso».
+        const ev = [], PULSO = 0.8;
+        const MELODIA = 'r:13 F#5 A5 G5 F#5 C#5 B4 C#5 D5 A4:3 F#4:12 r F#5 A5 G5 F#5 C#5 B4 C#5 D5 A4:3 C#5:3 F#5:3 E4:9 ' +
+          'A4 B4 C5 E5 D5 B4 D5 C5 B4 D5:5 D5 E5 F5 G5 A5 C5 D5 E5 D5 B4 D5:5 D5';
+        const FINALES = [
+          'G5:3 F#5:3 B4 A4 B4 C#5 D5 E5 C#5 D5 E5 F#4:3 C4+E4+A4+C5:3 D4+F#4+A4+D5:3',
+          'G5:3 F5:3 B4 C5 F5 E5 D5 C5 E5 D5 C5 F4:3 C4+E4+A4+C5:3 D4+F4+A4+D5:3'
+        ];
+        // Acompañamiento: el bajo en el primer pulso y el acorde en el segundo y el tercero.
+        const SOL = ['G2', 'B3+D4+F#4'], RE = ['D2', 'A3+C#4+F#4'];
+        const A = [SOL, RE, SOL, RE, SOL, RE, SOL, RE, SOL, RE, SOL, RE, SOL, RE, SOL, RE,
+          ['F#2', 'A3+C#4+F#4'], ['B1', 'B3+D4+F#4'], ['E2', 'G3+B3'], ['E2', 'B3+D4+G4'], ['D2', 'F3+A3+D4'],
+          ['A1', 'A3+C4+E4'], ['D2', 'G3+B3+E4'], ['D2', 'D3+G3+B3+E4'], ['D2', 'C3+E3+A3+D4'], ['D2', 'C3+F#3+A3+D4'],
+          ['D2', 'A3+C4+F4'], ['D2', 'A3+C4+E4'], ['D2', 'D3+G3+B3+E4'], ['D2', 'C3+E3+A3+D4'], ['D2', 'C3+F#3+A3+D4']];
+        const ACOMPANA_FINALES = [
+          [['E2', 'B3+E4+G4'], ['F#2', 'A3+C#4+F#4'], ['B1', 'B3+D4+F#4'], ['E2', 'C#4+E4+A4'], ['E2', 'A3+C#4+F#4+A4']],
+          [['E2', 'B3+E4+G4'], ['E2', 'A3+D4+F4+A4'], ['E2', 'A3+C4+F4'], ['E2', 'C4+E4+A4'], ['E2', 'A3+C4+F4+A4']]
+        ];
+        let inicio = 0;
+        [0, 1].forEach((vuelta) => {
+          voz(ev, MELODIA, inicio, 0.1);
+          const finales = voz(ev, FINALES[vuelta], inicio + 93, 0.1);
+          A.concat(ACOMPANA_FINALES[vuelta]).forEach((c, k) => {
+            voz(ev, c[0] + ':3', inicio + 3 * k, 0.07);
+            voz(ev, 'r ' + c[1] + ':2', inicio + 3 * k, 0.045);
+          });
+          // Compás 37: el bajo con una voz interior y dos acordes; 38 y 39: los acordes del final.
+          voz(ev, 'E2:3', inicio + 108, 0.07); voz(ev, 'r B2 E3', inicio + 108, 0.05); voz(ev, 'r A3+D4 B3+D4+G4', inicio + 108, 0.045);
+          voz(ev, 'A2+G3:3 D2+A2+D3:3', inicio + 111, 0.07);
+          inicio = finales;
+        });
+        return secuencia(ctx, ev, PULSO, inicio + 3, (e, t) =>
+          e.m.forEach((m) => piano(ctx, salida, m, t, e.d * PULSO + 1.2, e.v)));
+      }
+    },
+
+    tormenta: {
+      nombre: 'Tormenta del Verano (Vivaldi)',
+      crear(ctx, salida) {
+        // Antonio Vivaldi, «El verano» de Las cuatro estaciones, tercer movimiento, compases 1 a 28 (1725,
+        // dominio público). Notas de la edición del Mutopia Project (licencia CC BY-SA). Unidad: semicorchea.
+        const ev = [], SEMI = 0.1, BARRA = 12;
+        const VIOLIN = [
+          'G4 G3*11', 'F4 G3*11', 'Eb4 G3*11', 'D4 G3*7 G3:2 r:2', 'r:18',
+          'D5 D4*11', 'C5 D4*11', 'Bb4 D4*11', 'A4 D4*7 D4:2 r:2',
+          'r D5 C5 Bb4 A4 G4 F#4 E4 D4 C4 Bb3 A3', 'G3*12', 'G3 G5 F5 Eb5 D5 C5 Bb4 A4 G4 F4 Eb4 D4',
+          'C4*12', 'C4 Bb5 A5 G5 F5 Eb5 D5 C5 Bb4 A4 G4 F4', 'Eb4*12', 'Eb4 D6 C6 Bb5 A5 G5 F#5 E5 D5 C5 Bb4 A4',
+          'G4*12', 'G4 D6 C6 Bb5 A5 G5 F#5 E5 D5 C5 Bb4 A4', 'G4*12', 'D5 G4 G4 G4 D5 G4 G4 G4 D5 G4 G4 G4',
+          'D4 A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2', 'r A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2',
+          'r Bb4 C5 D5 Eb5 F#5 G5 A5 Bb5:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2',
+          'r A4 Bb4 C5 D5 E5 F#5 G5 A5:2 r:2', 'r Bb4 C5 D5 Eb5 F#5 G5 A5 Bb5:2 r:2', 'r D5 E5 F#5 G5 A5 Bb5 C6 D6:2 r:2'
+        ];
+        const BAJO = ['r:12', 'G2:2*6', 'G2:2*6', 'C3:2*6', 'C3:2*6', 'Eb2:2*6', 'Eb2:2*6', 'G2:2*6', 'G2:2*6', 'G2:2*6',
+          'G2*4 D3 G2*3 D3 G2*3'].concat(Array(8).fill('D2 D3 D2 D3 D2 D3 D2 D3 D2 D3 D2 D3'));
+        let p = 0;
+        VIOLIN.forEach((compas, k) => {
+          const fin = voz(ev, compas, p, 0.05, { violin: true });
+          // Al principio toda la orquesta toca el trémolo al unísono: violas y chelos una y dos octavas abajo.
+          if (k < 9) {
+            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 1)), p, 0.035);
+            voz(ev, compas.replace(/([A-G][#b]?)(\d)/g, (x, n, o) => n + (o - 2)), p, 0.045);
+          } else {
+            voz(ev, BAJO[k - 9], p, 0.05);
+          }
+          p = fin;
+        });
+        return secuencia(ctx, ev, SEMI, p + 6, (e, t) =>
+          e.m.forEach((m) => cuerda(ctx, salida, m, t, e.d * SEMI * (e.violin && e.d > 1 ? 0.95 : 0.9), e.v)));
       }
     },
 

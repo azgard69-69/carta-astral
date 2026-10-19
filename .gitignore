@@ -1,6 +1,8 @@
 # Lo que no debe subirse a GitHub.
 # Ajustes de este equipo (llevan rutas de carpetas personales):
 .claude/
+# El documento original de la guía no se publica; la app usa js/guia.js, que sale de él:
+fuentes/
 # Los paquetes .zip se vuelven a generar con herramientas/empaquetar.py:
 distribuir/
 # Restos de Python y del sistema:

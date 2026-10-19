@@ -125,14 +125,15 @@ de la app.
 | `js/app.js` | Une el formulario, los cálculos y los textos. |
 | `letras/` | La letra cursiva de los títulos (Courgette) y su licencia. |
 | `iconos/` | El icono de la app. |
-| `fuentes/` | El documento original de la guía (`.odt`). |
 | `herramientas/` | Programas de apoyo: convertir la guía, las ciudades, dibujar el icono, empaquetar. |
 | `pruebas/` | Comprobaciones de los cálculos y de la rueda. |
 | `LICENSE` | El texto de la licencia GPL versión 3. |
 
 ## Si cambias la guía
 
-Edita el documento de `fuentes/` y después ejecuta:
+Los textos de la tríada, los decanatos, las sombras y Lilith están en `js/guia.js`, que se genera
+a partir de un documento `.odt` que no forma parte del repositorio. Si tienes ese documento,
+ponlo en una carpeta `fuentes/` (Git no la sube) y ejecuta:
 
 ```bash
 python3 herramientas/generar_guia.py "fuentes/El zodiaco completi.odt" js/guia.js
@@ -164,6 +165,11 @@ Puedes usarla, copiarla, estudiarla, modificarla y compartirla; si repartes una 
 modificada, debe seguir siendo libre y con esta misma licencia. El texto completo está en `LICENSE`.
 
 Copyright © 2026 Siddhartha Ajax
+
+Origen de los textos: los de la tríada, decanatos, sombras y Lilith vienen de la «Guía Magna de
+Astrología», una recopilación propia hecha con ayuda de inteligencia artificial (Gemini). Los demás
+textos (planetas, casas, aspectos, nombres) son borradores escritos con ayuda de inteligencia
+artificial (Claude). Es astrología tradicional, no consejo profesional.
 
 Partes que conservan su propia licencia:
 

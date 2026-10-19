@@ -610,7 +610,7 @@
     h += `<h2 class="titulo-col">Cómo se lleva con el resto</h2>
       <section class="tarjeta" style="gap: 0">${suyos.length ? suyos.map(renglonAspecto).join('')
         : '<p>No forma aspectos mayores con otros puntos de tu carta: actúa por su cuenta.</p>'}</section>
-      </div></div><p class="nota">Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}. El resto de los textos son un borrador.</p>`;
+      </div></div><p class="nota">Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}, recopilación propia hecha con ayuda de inteligencia artificial (Gemini). El resto de los textos son borradores escritos con ayuda de inteligencia artificial (Claude).</p>`;
     $('#vista-detalle').innerHTML = h;
   }
 
@@ -778,7 +778,8 @@
       <p class="inf-nota">R = retrógrado.${d.sinHora ? ' Sin hora de nacimiento, la Luna puede variar hasta 7°.' : ''}</p>`;
     const hoy = new Date();
     h += `<footer class="inf-pie">Carta Astral · impreso el ${hoy.getDate()} ${MESES[hoy.getMonth()]} ${hoy.getFullYear()} ·
-      Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}. Los demás textos son un borrador.
+      Tríada, decanatos, sombras y Lilith: ${esc(GUIA.fuente)}, recopilación propia hecha con ayuda de inteligencia artificial (Gemini).
+      Los demás textos son borradores escritos con ayuda de inteligencia artificial (Claude). Es astrología tradicional, no consejo profesional.
       Cuerpo y salud son tradición astrológica, no consejo médico.</footer>`;
     $('#informe').innerHTML = h;
   }

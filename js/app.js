@@ -17,6 +17,8 @@
     ['asc', 'Ascendente', 'Sombra del Ascendente']];
   const DE_LA_GUIA = { sol: true, luna: true, asc: true };
   const TENSOS = { cuadratura: true, oposicion: true };
+  // Algunas personas se asustaron al leer su lado oscuro: esta frase acompaña siempre a esas secciones.
+  const TEXTO_SOMBRA = 'El lado oscuro no es un destino: muestra lo que conviene vigilar y trabajar. Conocerlo ya es el primer paso para manejarlo.';
   const TEXTO_RETRO = 'Cuando naciste, este planeta parecía ir hacia atrás en el cielo. Su energía se vive más hacia dentro: cuesta más mostrarla, pero se piensa mejor.';
   const EJEMPLO = {
     nombre: '', apellidos: '', fecha: '1990-04-05', hora: '14:30', sinHora: false,
@@ -606,7 +608,7 @@
     // Columna derecha: lado oscuro (tríada y Lilith) y cómo se lleva con el resto.
     h += '</div><div class="col">';
     if (DE_LA_GUIA[id] || id === 'lilith') {
-      h += `<h2 class="titulo-col rosa">Lado oscuro</h2>${tarjetasSombra(c, id)}`;
+      h += `<h2 class="titulo-col rosa">Lado oscuro</h2><p class="aviso-sombra">${TEXTO_SOMBRA}</p>${tarjetasSombra(c, id)}`;
     }
     const suyos = c.aspectos.filter((x) => x.a.id === id || x.b.id === id).slice(0, 8);
     h += `<h2 class="titulo-col">Cómo se lleva con el resto</h2>
@@ -841,7 +843,8 @@
       <h2>Cómo leer este informe</h2>
       <p>Cada frase de tu carta se arma con cuatro piezas. El <b>astro</b> dice qué parte de ti habla. El <b>signo</b>, con qué estilo lo hace.
       El <b>decanato</b> (cada 10° del signo) le da un matiz. La <b>casa</b> señala en qué terreno de tu vida se nota.
-      Y los <b>aspectos</b> cuentan cómo se llevan los astros entre sí.</p>`;
+      Y los <b>aspectos</b> cuentan cómo se llevan los astros entre sí.</p>
+      <p>Cada astro tiene también su <b>lado oscuro</b>. ${TEXTO_SOMBRA}</p>`;
 
     // --- Tríada ---
     h += '<h2>Tu tríada: Sol, Luna y Ascendente</h2>';

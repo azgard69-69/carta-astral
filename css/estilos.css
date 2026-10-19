@@ -90,6 +90,8 @@ h1 { font-family: var(--titulo); font-weight: 400; font-size: 34px; line-height:
 .etiqueta.rosa, .titulo-col.rosa { color: var(--rosa); }
 .etiqueta.tenue { color: var(--tenue); padding: 0 4px; }
 .titulo-col { font-family: var(--titulo); font-weight: 400; font-size: 22px; line-height: 28px; color: var(--oro); }
+/* Frase tranquilizadora bajo «Lado oscuro». */
+.aviso-sombra { padding: 10px 14px; border-left: 3px solid var(--rosa); border-radius: 0 10px 10px 0; background: var(--tarjeta); font-size: 14px; line-height: 20px; color: var(--texto); }
 .nota { font-size: 12px; line-height: 17px; color: var(--tenue); }
 .simbolo { font-family: var(--simbolos); }
 

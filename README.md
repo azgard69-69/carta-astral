@@ -7,6 +7,9 @@ reloj astronómico de Praga, imprime un informe completo y tiene música de fond
 
 Funciona sin internet y guarda todo en tu propio equipo. Sirve en Windows, en Linux y en el teléfono.
 
+**¿Te sirvió?** Es gratis y lo seguirá siendo. Si quieres apoyarla, puedes hacerlo con CoDi:
+[ver el código para escanear](#donaciones).
+
 ## Cómo descargarla y usarla
 
 Es gratis, no pide crear cuentas y tus datos se quedan en tu computadora o en tu teléfono.

@@ -1,9 +1,11 @@
 # Carta Astral
 
 Aplicación que calcula tu carta natal y la explica en lenguaje claro: tríada (Sol, Luna y
-Ascendente), decanatos, lado oscuro de cada signo, Lilith, planetas, casas, aspectos,
-significado del nombre, numerología y el retorno solar de cada año. Dibuja la rueda al estilo del
-reloj astronómico de Praga, imprime un informe completo y tiene música de fondo.
+Ascendente), decanatos, lado oscuro de cada signo, Lilith, Quirón, nodos lunares, planetas, casas,
+aspectos, significado del nombre y numerología. Además: retorno solar (tu año) y lunar (tu mes),
+compatibilidad con otra persona y un calendario con tus fechas importantes. Dibuja la rueda al
+estilo del reloj astronómico de Praga, imprime un informe completo, puede leerte cada sección en voz
+alta y tiene música de fondo.
 
 Funciona sin internet y guarda todo en tu propio equipo. Sirve en Windows, en Linux y en el teléfono.
 
@@ -63,11 +65,19 @@ En el teléfono no se usa el ZIP: la app se abre desde su dirección web y se in
    escribir tu lugar de nacimiento hasta que aparezca en la lista; elígelo ahí. Si hay varios
    lugares con el mismo nombre, añade el estado o el país: «San José Chiapas».
 2. Pulsa **Calcular mi carta**.
-3. Recorre **Carta natal** (tu signo solar, lunar y Ascendente, la rueda, los planetas, las casas y
-   los aspectos; toca cualquier astro para leer más), **Cielo de hoy**, **Retorno solar** (cómo
-   viene tu año, de un cumpleaños al siguiente) y **Cómo se lee**.
+3. Recorre las secciones:
+   - **Carta natal:** tu signo solar, lunar y Ascendente, la rueda, los planetas, Quirón, los nodos,
+     las casas y los aspectos. Toca cualquier astro para leer más.
+   - **Cielo de hoy:** dónde está cada astro ahora, qué toca en tu carta y tus fechas importantes de
+     los próximos doce meses; **Pasar a mi calendario** las descarga al calendario del teléfono.
+   - **Retornos:** cómo viene tu año (retorno solar) y tu mes (retorno lunar).
+   - **Compatibilidad:** escribe los datos de otra persona para ver qué los une, dónde chocan y qué
+     pueden cambiar o evitar.
+   - **Cómo se lee:** la guía para entender todo lo anterior.
 4. Con **Imprimir o guardar PDF** obtienes el informe completo.
-5. La música empieza sola; se pausa desde el menú.
+5. Con **Escuchar** la app te lee la sección en voz alta, con las voces de tu equipo o teléfono
+   (aparece si hay alguna voz en español).
+6. La música empieza sola; se pausa desde el menú.
 
 Si no sabes tu hora de nacimiento, marca **No conozco mi hora exacta**: verás todo menos el
 Ascendente y las casas.
@@ -136,12 +146,13 @@ de la app.
 |---|---|
 | `index.html` | La página de la aplicación. |
 | `css/estilos.css` | Colores y diseño (índigo con brillantina dorada). |
-| `js/astro.js` | El motor: calcula Sol, Luna, planetas, Lilith, casas, aspectos, hora solar y retorno solar. |
+| `js/astro.js` | El motor: calcula Sol, Luna, planetas, Lilith, Quirón, nodos, casas, aspectos, hora solar, retornos, tránsitos, eclipses y retrogradaciones. |
 | `js/rueda.js` | Dibuja la rueda al estilo del reloj astronómico de Praga. |
 | `js/musica.js` | La música de fondo. |
+| `js/voz.js` | La lectura en voz alta. |
 | `js/numerologia.js` | Camino de vida, expresión y alma. |
 | `js/guia.js` | Los textos de la guía, convertidos para la app. **No se edita a mano.** |
-| `js/textos.js` | Textos en lenguaje llano de planetas, casas y aspectos. Borrador; se edita a mano. |
+| `js/textos.js` | Textos en lenguaje llano de planetas, casas, aspectos, nodos, Quirón, retornos, compatibilidad y calendario. Borrador; se edita a mano. |
 | `js/nombres.js` | Significado de unos 1.240 nombres (español, inglés, náhuatl, maya y otros) y sus variantes de escritura. Borrador; se edita a mano. |
 | `js/ciudades.js` | Lista propia de 119 ciudades, con sus nombres en español. |
 | `js/ciudades-mundo.js` | Unas 170.000 ciudades y pueblos del mundo de más de 1.000 habitantes (GeoNames). **No se edita a mano.** |
@@ -178,7 +189,11 @@ node pruebas/prueba-motor.js
   y Saturno son los menos exactos).
   Es suficiente para signo, decanato, casa y aspectos; un programa profesional afina más.
 - Casas: sistema Placidus. Más allá de 66° de latitud se usan casas iguales.
-- Lilith: Luna Negra media.
+- Lilith: Luna Negra media. Nodos lunares: nodos medios.
+- Quirón: órbita del JPL; coincide en menos de 0,1° con sus entradas en signo de 2005 a 2026 y es
+  aproximado lejos de esos años.
+- Calendario: los eclipses se detectan por la distancia del Sol a los nodos en cada luna nueva o
+  llena (coinciden con los de 2026 y 2027); las fechas de los tránsitos, con un margen de horas.
 - Retorno solar: el momento exacto en que el Sol vuelve a su longitud natal (en el zodiaco tropical),
   con menos de un minuto de diferencia; se calcula para el lugar que elijas.
 - Numerología pitagórica con la tabla en español (la Ñ vale 5). Los números 11, 22 y 33 no se

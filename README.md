@@ -120,7 +120,7 @@ Carta Astral es software libre bajo la **Licencia Pública General de GNU, versi
 Puedes usarla, copiarla, estudiarla, modificarla y compartirla; si repartes una versión
 modificada, debe seguir siendo libre y con esta misma licencia. El texto completo está en `LICENSE`.
 
-Copyright © 2026 Siddhartha
+Copyright © 2026 Siddhartha Ajax
 
 Partes que conservan su propia licencia:
 

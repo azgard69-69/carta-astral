@@ -295,8 +295,8 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
   .informe { display: block !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 
-/* Canales de interés, en «Cómo se lee». */
-.canales ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 0; padding: 0; list-style: none; }
+/* Canal de interés, en «Cómo se lee». */
+.canales ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 0; padding: 0; list-style: none; }
 .canales a {
   display: grid; grid-template-columns: 24px 1fr; gap: 4px 10px; height: 100%; padding: 12px 14px;
   border: 1px solid var(--linea); border-radius: 12px; color: var(--texto); text-decoration: none;

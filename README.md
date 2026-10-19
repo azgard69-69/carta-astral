@@ -141,7 +141,8 @@ de dominio público. Todas están afinadas con el la en 432 Hz.
 7. **Asturias (Albéniz):** el tema del principio, en piano, como lo escribió Albéniz.
 8. **Noche serena:** acordes lentos con algún destello agudo.
 
-Con **Mi propia música…** puedes elegir canciones de tu equipo. La app las recuerda en el navegador
+Con **Elegir mis canciones…** puedes elegir canciones de tu equipo (después aparecen como **Mis
+canciones**; con **Elegir otras…** las cambias y con **Quitar mis canciones** las borras). La app las recuerda en el navegador
 de ese equipo (no se suben a ningún lado) para que suenen la próxima vez, y con **Afinar mi música a
 432 Hz** las toca un 1,8 % más despacio, sin corregir el tono, para pasarlas de 440 a 432 Hz. Así
 puedes escuchar en 432 Hz canciones con derechos de autor que no pueden ir dentro de un programa

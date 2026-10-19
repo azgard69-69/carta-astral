@@ -760,6 +760,8 @@
     boton.innerHTML = (estado.encendida ? ICONO_PAUSA : ICONO_TOCAR) +
       `<span class="musica-texto">${estado.encendida ? 'Pausar música' : 'Poner música'}</span>`;
     boton.setAttribute('aria-pressed', String(estado.encendida));
+    opcionPropia.textContent = 'Mis canciones (' + propias.length + ')';
+    opcionPropia.hidden = !propias.length;
     lista.value = estado.melodia;
     const enEspera = estado.encendida && ((ctx && ctx.state === 'suspended') || (estado.melodia === 'propia' && audio && audio.paused));
     aviso.textContent = enEspera
@@ -785,7 +787,8 @@
   };
 
   lista.innerHTML = Object.keys(PISTAS).map((id) => `<option value="${id}">${PISTAS[id].nombre}</option>`).join('') +
-    '<option value="propia">Mi propia música…</option>';
+    '<option value="propia">Mis canciones</option><option value="elegir">Elegir mis canciones…</option>';
+  const opcionPropia = lista.querySelector('option[value="propia"]');
   barra.value = Math.round(estado.volumen * 100);
   if (quiereMusica && encender() && ctx && ctx.state !== 'running') {
     document.addEventListener('pointerdown', despertar);
@@ -816,6 +819,8 @@
     guardar(); pintar();
   });
   lista.addEventListener('change', () => {
+    // «Elegir mis canciones…» siempre abre la ventana; mientras tanto la lista vuelve a mostrar lo que suena.
+    if (lista.value === 'elegir') { archivos.value = ''; archivos.click(); pintar(); return; }
     estado.melodia = lista.value;
     if (estado.melodia === 'propia' && !propias.length) archivos.click();
     else if (estado.encendida) encender();
@@ -830,10 +835,21 @@
   archivos.addEventListener('change', () => {
     if (!archivos.files.length) return;
     cargarPropias(archivos.files, true);
+    archivos.value = ''; // para que se puedan volver a elegir las mismas
     estado.melodia = 'propia';
     encender();
     guardar(); pintar();
   });
   casilla432.addEventListener('change', () => { estado.a432 = casilla432.checked; afinar(); guardar(); });
-  document.getElementById('musica-cambiar').addEventListener('click', () => archivos.click());
+  document.getElementById('musica-cambiar').addEventListener('click', () => { archivos.value = ''; archivos.click(); });
+  // Quitar las canciones propias: se borran de este equipo y vuelve la melodía de siempre.
+  document.getElementById('musica-quitar').addEventListener('click', () => {
+    const sonaba = estado.encendida;
+    apagar();
+    if (audio) audio.removeAttribute('src');
+    cargarPropias([], true);
+    estado.melodia = 'gayatri';
+    if (sonaba) encender();
+    guardar(); pintar();
+  });
 })(window);

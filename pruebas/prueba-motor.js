@@ -66,6 +66,15 @@ cerca('Luna', hoy.puntos[1].lon, 224.03, 0.15);
 const ev = Astro.proximosEventos(Date.UTC(2026, 9, 12), 20).filter(e => !e.menor).map(e => e.texto);
 igual('Próximos eventos', ev.join(' | '), 'Cuarto creciente en Capricornio | Sol entra en Escorpio | Luna llena en Tauro');
 
+console.log('Sol preciso y retorno solar');
+// Equinoccio de marzo de 2025: 20 mar, 09:01 UT. El Sol llega a 0° con menos de un minuto de diferencia.
+cerca('Equinoccio 2025 (min)', (Astro.retornoSolar(0, Date.UTC(2025, 2, 23)) - Date.UTC(2025, 2, 20, 9, 1)) / 60000, 0, 1);
+// Meeus, ejemplo 25.b: 13 oct 1992, 0 h TD, longitud aparente 199°54′21,8″.
+cerca('Meeus 25.b (″)', (Astro.lonSol((2448908.5 - 2451545) / 36525) - (199 + 54 / 60 + 21.818 / 3600)) * 3600, 0, 1);
+const ret = Astro.retornoSolar(p.sol.lon, Date.UTC(2026, 3, 5, 20));
+igual('Retorno 2026 de la carta de ejemplo', new Date(ret).toISOString().slice(0, 10), '2026-04-05');
+cerca('Sol del retorno = Sol natal', Astro.calcularCarta({ ms: ret, sinHora: true }).puntos[0].lon, p.sol.lon, 0.0001);
+
 console.log('Numerología');
 igual('Camino de vida 5/4/1990', Num.caminoDeVida(5, 4, 1990), 1);
 igual('Camino maestro 29/11/1980', Num.caminoDeVida(29, 11, 1980), 4);

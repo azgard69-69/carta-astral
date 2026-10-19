@@ -82,6 +82,48 @@ window.TEXTOS = {
     oposicion: ['queda frente a', ': otras personas o situaciones te ponen ese tema delante.']
   },
 
+  // Retorno solar: la carta del momento en que el Sol vuelve a su grado natal describe el año,
+  // de un cumpleaños al siguiente.
+  retorno: {
+    // Ascendente del retorno, de Aries a Piscis: el tono del año.
+    ascendente: [
+      'Un año para tomar la iniciativa y empezar cosas por tu cuenta. Vas con más prisa y más valor de lo habitual; cuida los arranques de enojo.',
+      'Un año para asentarte: el dinero, el cuerpo y la comodidad piden atención. Avanzas despacio, pero lo que construyas durará.',
+      'Un año movido, de conversaciones, estudios, trámites y viajes cortos. Te llegan muchas ideas; elige unas pocas para no dispersarte.',
+      'Un año centrado en el hogar, la familia y tus emociones. Puede haber cambios en casa; necesitas sentirte a salvo.',
+      'Un año para mostrarte y brillar: creatividad, romance y ganas de reconocimiento. Atrévete a ocupar tu lugar sin depender del aplauso.',
+      'Un año de orden y mejoras: trabajo, rutinas y salud. Buen momento para cuidar el cuerpo y pulir detalles, sin exigirte de más.',
+      'Un año en el que las relaciones toman el centro: pareja, socios y acuerdos. Buscas equilibrio; cuida no ceder siempre para evitar conflictos.',
+      'Un año intenso, de transformaciones y temas profundos. Algo termina para que otra cosa nazca; confía en tu fuerza para soltar.',
+      'Un año para ampliar horizontes: viajes, estudios y nuevas ideas sobre la vida. Hay optimismo y ganas de aventura; cuida no prometer de más.',
+      'Un año de responsabilidades y metas a largo plazo. Pide esfuerzo y constancia, y da resultados sólidos.',
+      'Un año de cambios y libertad: amistades nuevas, grupos y proyectos distintos. Te apetece romper rutinas y probar lo diferente.',
+      'Un año sensible e intuitivo, con más necesidad de descanso, arte y espiritualidad. Escucha tus sueños y pon límites para no agotarte.'
+    ],
+    // Casa en la que cae el Sol del retorno: dónde se concentra el año.
+    solCasa: {
+      1: 'Este año el foco está en ti: tu imagen, tu cuerpo y tus decisiones personales. Es un año para empezar de nuevo.',
+      2: 'Este año el foco está en el dinero, tus recursos y lo que valoras. Buen momento para ordenar tus finanzas y apreciar tus talentos.',
+      3: 'Este año el foco está en aprender, comunicarte y moverte por tu entorno: estudios, hermanos, vecinos y viajes cortos.',
+      4: 'Este año el foco está en el hogar y la familia. Puede ser un año de mudanza, de arreglar la casa o de mirar tus raíces.',
+      5: 'Este año el foco está en disfrutar y crear: romances, hijos, aficiones y todo lo que te da vida.',
+      6: 'Este año el foco está en el trabajo diario y la salud. Toca organizar rutinas, cuidar el cuerpo y mejorar tu forma de trabajar.',
+      7: 'Este año el foco está en las relaciones: pareja, socios y acuerdos. Lo que vivas con otras personas te enseña mucho de ti.',
+      8: 'Este año el foco está en lo profundo: intimidad, dinero compartido, herencias y cierres. Un año de transformación.',
+      9: 'Este año el foco está en ampliar horizontes: viajes largos, estudios superiores y tus creencias.',
+      10: 'Este año el foco está en tu profesión y tus metas. Es un año de exposición y de logros, si trabajas por ellos.',
+      11: 'Este año el foco está en tus amistades, los grupos y tus proyectos a futuro. Las personas afines te abren puertas.',
+      12: 'Este año el foco está en tu mundo interior: descanso, retiro y espiritualidad. Un año para cerrar ciclos y prepararte para lo que viene.'
+    },
+    // Un astro pegado a un ángulo del retorno se nota mucho durante el año. «… se nota mucho {texto}».
+    angulos: {
+      asc: 'en tu forma de mostrarte y de empezar las cosas',
+      dsc: 'en tus relaciones y en las personas que aparecen',
+      mc: 'en tu profesión y en tu imagen pública',
+      ic: 'en tu hogar, tu familia y tu vida privada'
+    }
+  },
+
   // Planeta en cada signo, en orden: Aries, Tauro, Géminis, Cáncer, Leo, Virgo,
   // Libra, Escorpio, Sagitario, Capricornio, Acuario, Piscis.
   enSigno: {

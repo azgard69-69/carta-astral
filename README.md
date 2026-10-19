@@ -2,8 +2,8 @@
 
 Aplicación que calcula tu carta natal y la explica en lenguaje claro: tríada (Sol, Luna y
 Ascendente), decanatos, lado oscuro de cada signo, Lilith, planetas, casas, aspectos,
-significado del nombre y numerología. Dibuja la rueda al estilo del reloj astronómico de Praga,
-imprime un informe completo y tiene música de fondo.
+significado del nombre, numerología y el retorno solar de cada año. Dibuja la rueda al estilo del
+reloj astronómico de Praga, imprime un informe completo y tiene música de fondo.
 
 Funciona sin internet y guarda todo en tu propio equipo. Sirve en Windows, en Linux y en el teléfono.
 
@@ -55,7 +55,8 @@ En el teléfono no se usa el ZIP: la app se abre desde su dirección web y se in
    lugares con el mismo nombre, añade el estado o el país: «San José Chiapas».
 2. Pulsa **Calcular mi carta**.
 3. Recorre **Carta natal** (tu signo solar, lunar y Ascendente, la rueda, los planetas, las casas y
-   los aspectos; toca cualquier astro para leer más), **Cielo de hoy** y **Cómo se lee**.
+   los aspectos; toca cualquier astro para leer más), **Cielo de hoy**, **Retorno solar** (cómo
+   viene tu año, de un cumpleaños al siguiente) y **Cómo se lee**.
 4. Con **Imprimir o guardar PDF** obtienes el informe completo.
 5. La música empieza sola; se pausa desde el menú.
 
@@ -113,7 +114,7 @@ de la app.
 |---|---|
 | `index.html` | La página de la aplicación. |
 | `css/estilos.css` | Colores y diseño (índigo con brillantina dorada). |
-| `js/astro.js` | El motor: calcula Sol, Luna, planetas, Lilith, casas, aspectos y hora solar. |
+| `js/astro.js` | El motor: calcula Sol, Luna, planetas, Lilith, casas, aspectos, hora solar y retorno solar. |
 | `js/rueda.js` | Dibuja la rueda al estilo del reloj astronómico de Praga. |
 | `js/musica.js` | La música de fondo. |
 | `js/numerologia.js` | Camino de vida, expresión y alma. |
@@ -150,10 +151,13 @@ node pruebas/prueba-motor.js
 ## Precisión y límites
 
 - Fechas admitidas: de 1800 a 2050.
-- Sol: unos 0,01°. Luna: unos 0,05°. Planetas: hasta 0,2° (Júpiter y Saturno son los menos exactos).
+- Sol: menos de un segundo de arco (teoría VSOP87). Luna: unos 0,05°. Planetas: hasta 0,2° (Júpiter
+  y Saturno son los menos exactos).
   Es suficiente para signo, decanato, casa y aspectos; un programa profesional afina más.
 - Casas: sistema Placidus. Más allá de 66° de latitud se usan casas iguales.
 - Lilith: Luna Negra media.
+- Retorno solar: el momento exacto en que el Sol vuelve a su longitud natal (en el zodiaco tropical),
+  con menos de un minuto de diferencia; se calcula para el lugar que elijas.
 - Numerología pitagórica con la tabla en español (la Ñ vale 5). Los números 11, 22 y 33 no se
   reducen. Expresión y alma se calculan con nombre y apellidos.
 - Las ciudades de la lista mundial llevan su nombre en GeoNames, que a veces está en inglés.

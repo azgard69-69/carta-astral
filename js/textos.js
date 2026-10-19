@@ -277,7 +277,7 @@ window.TEXTOS = {
   // Qué hacer con un aspecto de roce entre dos cartas.
   sinastriaConsejo: {
     cuadratura: 'Cuando aparezca el roce, hablen de él con calma y túrnense: a veces gana una forma de hacer las cosas, a veces la otra.',
-    oposicion: 'Vean a la otra persona como su complemento, no como su rival: cada quien muestra lo que al otro le falta.'
+    oposicion: 'Vean a la otra persona como su complemento, no como su rival: cada quien aporta lo que le falta a quien tiene al lado.'
   },
 
   // Planeta en cada signo, en orden: Aries, Tauro, Géminis, Cáncer, Leo, Virgo,

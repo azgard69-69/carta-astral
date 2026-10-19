@@ -89,6 +89,7 @@
       mundo = { lineas: lineas, zonas: M.zonas, claves: claves, inicios: inicios, texto: '\n' + claves.join('\n') + '\n' };
       if (document.activeElement === $('#lugar')) sugerir();
       if (document.activeElement === $('#retorno-lugar') && estado.retorno.sugerir) estado.retorno.sugerir();
+      if (document.activeElement === $('#pareja-lugar') && estado.parejaSugerir) estado.parejaSugerir();
     };
     guion.onerror = () => { cargandoMundo = false; };
     document.head.appendChild(guion);
@@ -890,6 +891,173 @@
     });
   }
 
+  // ---------- Compatibilidad ----------
+
+  // Compara tu carta con la de otra persona (pareja, familia, amistad). Sus datos se guardan aparte.
+  const CLAVE_PAREJA = 'cartaAstral.pareja';
+  const SINASTRIA = ['sol', 'luna', 'mercurio', 'venus', 'marte', 'jupiter', 'saturno', 'asc'];
+  const TIPO_COMPAT = { fluye: 'Fluye', complementa: 'Se complementan', reto: 'Pide trabajo' };
+  // «tu manera de querer» → «su manera de querer», para hablar de la otra persona.
+  const enTercera = (t) => t.replace(/\btus\b/g, 'sus').replace(/\btu\b/g, 'su');
+
+  function guardarPareja(p) {
+    try {
+      if (p) localStorage.setItem(CLAVE_PAREJA, JSON.stringify(p));
+      else localStorage.removeItem(CLAVE_PAREJA);
+    } catch (e) { /* sin almacenamiento */ }
+  }
+
+  function cargarPareja() {
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem(CLAVE_PAREJA)); } catch (e) { /* nada guardado */ }
+    if (p && !validar(p)) {
+      try { estado.pareja = p; estado.cartaPareja = calcular(p); } catch (e) { estado.pareja = null; estado.cartaPareja = null; }
+    }
+  }
+
+  // Un factor de la compatibilidad: dos astros, el elemento de cada uno y qué hacer con esa mezcla.
+  function tarjetaFactor(titulo, uno, quienUno, otro, quienOtro) {
+    const s1 = GUIA.signos[uno.pos.signo], s2 = GUIA.signos[otro.pos.signo];
+    const clave = [s1.elemento.toLowerCase(), s2.elemento.toLowerCase()].sort().join('-');
+    const x = TEXTOS.compatibilidad[clave];
+    return `<div class="tarjeta factor"><span class="etiqueta">${titulo}</span>
+      <span class="factor-par"><span class="simbolo oro" aria-hidden="true">${SIGNO_SIMBOLO[uno.pos.signo]}${TXT}</span>${s1.nombre} <small>(${esc(quienUno)})</small> ·
+        <span class="simbolo oro" aria-hidden="true">${SIGNO_SIMBOLO[otro.pos.signo]}${TXT}</span>${s2.nombre} <small>(${esc(quienOtro)})</small></span>
+      <span class="pastilla ${x.tipo === 'reto' ? 'tensa' : ''}">${s1.elemento} y ${s2.elemento} · ${TIPO_COMPAT[x.tipo]}</span>
+      <p>${esc(x.como)}</p>
+      <p><b>Qué cambiar.</b> ${esc(x.cambiar)}</p>
+      <p><b>Qué evitar.</b> ${esc(x.evitar)}</p></div>`;
+  }
+
+  function renglonSinastria(x, conConsejo) {
+    const a = TEXTOS.astros[x.a.id], b = TEXTOS.astros[x.b.id];
+    return `<div class="renglon"><span><b>Tu ${x.a.nombre}</b> ${x.aspecto.nombre} <b>su ${x.b.nombre}</b></span>
+      <span class="orbe">orbe ${A.textoOrbe(x.orbe)}</span>
+      <small>Tu ${x.a.nombre} y su ${x.b.nombre} ${esc(TEXTOS.sinastria[x.aspecto.id])}
+        (${esc(mayuscula(a.corto))}; ${esc(enTercera(b.corto))}.)${conConsejo && TEXTOS.sinastriaConsejo[x.aspecto.id]
+          ? ' ' + esc(TEXTOS.sinastriaConsejo[x.aspecto.id]) : ''}</small></div>`;
+  }
+
+  function pintarPareja() {
+    const caja = $('#vista-pareja');
+    const cabecera = (titulo, sub, acciones) => `<header class="cabecera"><div><div class="sobretitulo">Compatibilidad</div>
+      <h1>${titulo}</h1><p class="subtitulo">${sub}</p></div>${acciones ? `<div class="acciones">${acciones}</div>` : ''}</header>`;
+    const intro = 'Compara tu carta con la de tu pareja, alguien de tu familia o una amistad: qué los une, dónde chocan y qué pueden hacer para llevarse mejor.';
+    if (!estado.carta) {
+      caja.innerHTML = cabecera('Tú y otra persona', intro) + `<div class="tarjeta"><p>Calcula primero tu carta para compararla con otra.</p>
+        <button type="button" class="boton" data-vista="datos" style="align-self: flex-start">Ir a mis datos</button></div>`;
+      return;
+    }
+    if (!estado.cartaPareja || estado.parejaEditando) { pintarFormularioPareja(caja, cabecera('Tú y otra persona', intro)); return; }
+
+    const p = estado.pareja, yo = estado.carta, otra = estado.cartaPareja, nombre = p.nombre || 'la otra persona';
+    const mio = (id) => yo.puntos.concat(yo.angulos).find((x) => x.id === id);
+    const suyo = (id) => otra.puntos.concat(otra.angulos).find((x) => x.id === id);
+    let h = cabecera('Tú y ' + esc(nombre), esc(textoFecha(estado.datos).slice(0, 2).join(', ')) + ' · ' + esc(textoFecha(p).slice(0, 2).join(', ')),
+      '<button type="button" class="boton secundario" data-accion="pareja-editar">Cambiar persona</button>');
+    h += `<p class="aviso-sombra">La compatibilidad no es un destino: dos cartas con roces pueden llevarse muy bien si cada quien entiende a la otra persona.
+      Úsenla para conocerse, no para descartar a nadie.</p>`;
+
+    // Los factores principales, por elementos.
+    h += '<h2 class="etiqueta tenue">Por elementos</h2><div class="factores">' +
+      tarjetaFactor('Sus Soles · cómo son', mio('sol'), 'tú', suyo('sol'), nombre) +
+      tarjetaFactor('Sus Lunas · lo que necesitan para sentirse bien', mio('luna'), 'tú', suyo('luna'), nombre) +
+      tarjetaFactor('Tu Venus y su Marte · atracción', mio('venus'), 'tú', suyo('marte'), nombre) +
+      tarjetaFactor('Su Venus y tu Marte · atracción', suyo('venus'), nombre, mio('marte'), 'tú') +
+      (mio('asc') && suyo('asc') ? tarjetaFactor('Sus Ascendentes · la primera impresión', mio('asc'), 'tú', suyo('asc'), nombre) : '') +
+      '</div>';
+    if (p.sinHora) h += '<p class="nota">Sin su hora de nacimiento, su Luna puede variar hasta 7° y no se conoce su Ascendente.</p>';
+
+    // Aspectos entre las dos cartas.
+    const deUno = yo.puntos.concat(yo.angulos).filter((x) => SINASTRIA.includes(x.id));
+    const deOtra = otra.puntos.concat(otra.angulos).filter((x) => SINASTRIA.includes(x.id));
+    const todos = A.aspectos(deUno, deOtra, 5);
+    const unen = todos.filter((x) => !TENSOS[x.aspecto.id]).slice(0, 8);
+    const cuestan = todos.filter((x) => TENSOS[x.aspecto.id]).slice(0, 8);
+    h += `<div class="columnas"><section class="col"><div class="tarjeta" style="gap: 0"><h2 class="etiqueta" style="margin-bottom: 4px">Lo que los une</h2>
+        ${unen.length ? unen.map((x) => renglonSinastria(x, false)).join('') : '<p>No hay aspectos cercanos de armonía entre sus cartas.</p>'}</div></section>
+      <section class="col"><div class="tarjeta" style="gap: 0"><h2 class="etiqueta rosa" style="margin-bottom: 4px">Lo que les cuesta y cómo llevarlo</h2>
+        ${cuestan.length ? cuestan.map((x) => renglonSinastria(x, true)).join('') : '<p>No hay aspectos cercanos de roce entre sus cartas.</p>'}</div></section></div>`;
+
+    // Resumen: cuánta armonía y cuánto roce hay.
+    const pesar = (lista) => lista.reduce((s, x) => s + (5 - x.orbe), 0);
+    const armonia = pesar(todos.filter((x) => !TENSOS[x.aspecto.id])), roce = pesar(todos.filter((x) => TENSOS[x.aspecto.id]));
+    const resumen = armonia > roce * 1.5
+      ? 'Se entienden con facilidad. Disfrútenlo, pero no den la relación por hecha: también la armonía se cuida.'
+      : roce > armonia * 1.5
+        ? 'Hay roces, y también mucho que aprender. Con paciencia, acuerdos claros y sentido del humor, las diferencias se vuelven complemento.'
+        : 'Hay de todo: armonía para disfrutar y roces que, bien hablados, los hacen crecer a los dos.';
+    h += `<section class="tarjeta"><h2 class="etiqueta">En resumen</h2><p>${resumen}</p>
+      <p class="nota">Se comparan Sol, Luna, Mercurio, Venus, Marte, Júpiter, Saturno y Ascendente de cada carta, con un orbe de hasta 5°.</p></section>`;
+    caja.innerHTML = h;
+  }
+
+  function pintarFormularioPareja(caja, cabecera) {
+    const p = estado.pareja || {};
+    let lugarElegido = p.zona ? { etiqueta: p.lugar, lat: p.lat, lon: p.lon, zona: p.zona } : null;
+    caja.innerHTML = cabecera + `<form id="pareja-form" class="tarjeta formulario" novalidate>
+        <h2 class="etiqueta">Datos de la otra persona</h2>
+        <div class="campo"><label for="pareja-nombre">Su nombre</label>
+          <input id="pareja-nombre" type="text" autocomplete="off" value="${esc(p.nombre || '')}" placeholder="Para saber de quién se habla"></div>
+        <div class="fila">
+          <div class="campo"><label for="pareja-fecha">Fecha de nacimiento</label>
+            <input id="pareja-fecha" type="date" min="1800-01-01" max="2050-12-31" value="${esc(p.fecha || '')}"></div>
+          <div class="campo"><label for="pareja-hora">Hora de nacimiento</label>
+            <input id="pareja-hora" type="time" value="${esc(p.hora || '')}"${p.sinHora ? ' disabled' : ''}></div>
+        </div>
+        <div class="casilla"><input id="pareja-sinhora" type="checkbox"${p.sinHora ? ' checked' : ''}>
+          <label for="pareja-sinhora"><strong>No conozco su hora exacta</strong>
+            <span class="nota">Se compara igual, pero sin su Ascendente y con su Luna aproximada.</span></label></div>
+        <div class="campo"><label for="pareja-lugar">Lugar de nacimiento</label>
+          <div class="con-sugerencias">
+            <input id="pareja-lugar" type="text" autocomplete="off" value="${esc(p.lugar || '')}" placeholder="Empieza a escribir su ciudad">
+            <ul id="pareja-sugerencias" class="sugerencias" aria-label="Ciudades que coinciden" hidden></ul>
+          </div></div>
+        <p id="pareja-error" class="error" role="alert" hidden></p>
+        <div class="acciones">
+          <button type="submit" class="boton">Ver compatibilidad</button>
+          ${estado.cartaPareja ? '<button type="button" class="boton secundario" data-accion="pareja-cancelar">Cancelar</button>' : ''}
+          ${estado.pareja ? '<button type="button" class="boton secundario" data-accion="pareja-borrar">Borrar sus datos</button>' : ''}
+        </div>
+      </form>`;
+
+    const entrada = $('#pareja-lugar'), lista = $('#pareja-sugerencias');
+    let opciones = [];
+    estado.parejaSugerir = () => {
+      opciones = buscarLugares(entrada.value);
+      lista.innerHTML = opciones.map((s, i) => `<li role="option" data-i="${i}">${esc(s.etiqueta)}</li>`).join('');
+      lista.hidden = !opciones.length;
+    };
+    const elegir = (s) => { lugarElegido = s; entrada.value = s.etiqueta; lista.hidden = true; };
+    entrada.addEventListener('focus', cargarMundo);
+    entrada.addEventListener('input', () => { lugarElegido = null; estado.parejaSugerir(); });
+    entrada.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && opciones.length && !lugarElegido) { ev.preventDefault(); elegir(opciones[0]); } });
+    entrada.addEventListener('blur', () => setTimeout(() => { lista.hidden = true; }, 150));
+    lista.addEventListener('mousedown', (ev) => {
+      const li = ev.target.closest('li');
+      if (li && opciones[Number(li.dataset.i)]) { ev.preventDefault(); elegir(opciones[Number(li.dataset.i)]); }
+    });
+    $('#pareja-sinhora').addEventListener('change', () => { $('#pareja-hora').disabled = $('#pareja-sinhora').checked; });
+    $('#pareja-form').addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const d = {
+        nombre: $('#pareja-nombre').value.trim(), fecha: $('#pareja-fecha').value, hora: $('#pareja-hora').value,
+        sinHora: $('#pareja-sinhora').checked, lugar: lugarElegido ? lugarElegido.etiqueta : '',
+        lat: lugarElegido ? lugarElegido.lat : NaN, lon: lugarElegido ? lugarElegido.lon : NaN, zona: lugarElegido ? lugarElegido.zona : '',
+        polar: lugarElegido ? Math.abs(lugarElegido.lat) >= 66 : false
+      };
+      let error = validar(d).replace('Falta la hora de nacimiento.', 'Falta su hora de nacimiento.').replace('Falta el lugar de nacimiento', 'Falta su lugar de nacimiento');
+      let carta = null;
+      if (!error) { try { carta = calcular(d); } catch (e) { error = 'No pude calcular su carta con esos datos.'; } }
+      $('#pareja-error').hidden = !error;
+      $('#pareja-error').textContent = error;
+      if (error) return;
+      estado.pareja = d; estado.cartaPareja = carta; estado.parejaEditando = false;
+      guardarPareja(d);
+      pintarPareja(); ponerBotonVoz(); window.scrollTo(0, 0);
+    });
+  }
+
   // ---------- Informe para imprimir o guardar en PDF ----------
 
   function pintarInforme() {
@@ -1093,7 +1261,8 @@
     if (vista === 'detalle') pintarDetalle();
     if (vista === 'hoy') pintarHoy();
     if (vista === 'retorno') pintarRetorno();
-    ['datos', 'carta', 'detalle', 'hoy', 'retorno', 'guia'].forEach((v) => { $('#vista-' + v).hidden = v !== vista; });
+    if (vista === 'pareja') pintarPareja();
+    ['datos', 'carta', 'detalle', 'hoy', 'retorno', 'pareja', 'guia'].forEach((v) => { $('#vista-' + v).hidden = v !== vista; });
     const marcada = vista === 'detalle' ? 'carta' : vista;
     document.querySelectorAll('.menu-lista button').forEach((b) => {
       if (b.dataset.vista === marcada) b.setAttribute('aria-current', 'page');
@@ -1111,6 +1280,9 @@
     else if (b.dataset.accion === 'retorno-anio') { Voz.parar(); estado.retorno.anio = Number(b.dataset.anio); pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-natal') { Voz.parar(); estado.retorno.lugar = null; pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-mes') { Voz.parar(); estado.retorno.mes = Number(b.dataset.mes); pintarRetorno(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'pareja-editar') { Voz.parar(); estado.parejaEditando = true; pintarPareja(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'pareja-cancelar') { estado.parejaEditando = false; pintarPareja(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'pareja-borrar') { estado.pareja = null; estado.cartaPareja = null; estado.parejaEditando = false; guardarPareja(null); pintarPareja(); ponerBotonVoz(); }
     else if (b.dataset.accion === 'retorno-tipo') { Voz.parar(); estado.retorno.tipo = b.dataset.tipo; pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.detalle) { estado.detalle = b.dataset.detalle; ir('detalle'); } else ir(b.dataset.vista);
   });
@@ -1148,6 +1320,7 @@
     llenarFormulario(EJEMPLO); refrescarLugar();
     estado.datos = leerFormulario(); estado.carta = calcular(estado.datos);
   }
+  cargarPareja();
   ir(estado.carta ? 'carta' : 'datos');
 
   // Para pruebas: permite generar el informe sin abrir el diálogo de impresión.

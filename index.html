@@ -17,23 +17,27 @@
   <div class="menu-lista">
     <button type="button" data-vista="carta">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>
-      Carta natal
+      <span class="largo">Carta natal</span><span class="corto">Carta</span>
     </button>
     <button type="button" data-vista="hoy">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
-      Cielo de hoy
+      <span class="largo">Cielo de hoy</span><span class="corto">Hoy</span>
     </button>
     <button type="button" data-vista="retorno">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/><circle cx="12" cy="12" r="3"/></svg>
-      Retornos
+      <span class="largo">Retornos</span><span class="corto">Retornos</span>
+    </button>
+    <button type="button" data-vista="pareja">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+      <span class="largo">Compatibilidad</span><span class="corto">Pareja</span>
     </button>
     <button type="button" data-vista="guia">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h4"/></svg>
-      Cómo se lee
+      <span class="largo">Cómo se lee</span><span class="corto">Guía</span>
     </button>
     <button type="button" data-vista="datos">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-      Mis datos
+      <span class="largo">Mis datos</span><span class="corto">Datos</span>
     </button>
   </div>
   <!-- Música de fondo, debajo de «Mis datos» -->
@@ -156,11 +160,12 @@
   </div>
 </section>
 
-<!-- ===== Carta natal, detalle, cielo de hoy y retorno solar: los rellena js/app.js ===== -->
+<!-- ===== Carta natal, detalle, cielo de hoy, retornos y compatibilidad: los rellena js/app.js ===== -->
 <section id="vista-carta" class="vista" hidden></section>
 <section id="vista-detalle" class="vista" hidden></section>
 <section id="vista-hoy" class="vista" hidden></section>
 <section id="vista-retorno" class="vista" hidden></section>
+<section id="vista-pareja" class="vista" hidden></section>
 
 <!-- ===== Cómo se lee ===== -->
 <section id="vista-guia" class="vista" hidden>

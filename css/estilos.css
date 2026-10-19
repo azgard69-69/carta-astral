@@ -297,6 +297,11 @@ body.ver-informe .informe { display: block; max-width: 180mm; margin: 0 auto; pa
   .informe { display: block !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 
+/* Botón «Escuchar» de la lectura en voz alta. */
+.boton-voz { display: inline-flex; align-items: center; gap: 8px; }
+.boton-voz svg { width: 18px; height: 18px; flex-shrink: 0; }
+.boton-voz[aria-pressed="true"] { border-color: var(--oro); color: var(--oro); }
+
 /* Apoyar el proyecto: el código de CoDi va sobre blanco y sin suavizar, para que se pueda escanear. */
 .apoyo-cuerpo { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; }
 .apoyo-cuerpo > div { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }

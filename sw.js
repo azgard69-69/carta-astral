@@ -3,7 +3,7 @@
  * se pueda instalar y abrir sin conexión. Con conexión, siempre trae la versión más nueva.
  * Al cambiar la lista de archivos, sube el número de VERSION.
  */
-const VERSION = 'carta-astral-4';
+const VERSION = 'carta-astral-5';
 const ARCHIVOS = [
   "./",
   "index.html",
@@ -23,7 +23,8 @@ const ARCHIVOS = [
   "js/nombres.js",
   "js/numerologia.js",
   "js/rueda.js",
-  "js/textos.js"
+  "js/textos.js",
+  "js/voz.js"
 ];
 
 self.addEventListener('install', (ev) => {

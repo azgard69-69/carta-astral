@@ -782,8 +782,10 @@
     const entrada = $('#retorno-lugar'), lista = $('#retorno-sugerencias');
     let opciones = [];
     const elegir = (s) => {
+      Voz.parar();
       estado.retorno.lugar = { etiqueta: s.etiqueta, lat: s.lat, lon: s.lon, zona: s.zona };
       pintarRetorno();
+      ponerBotonVoz();
     };
     estado.retorno.sugerir = () => {
       opciones = buscarLugares(entrada.value);
@@ -946,9 +948,39 @@
     if (estado.carta) window.print();
   }
 
+  // ---------- Lectura en voz alta (js/voz.js) ----------
+
+  const Voz = window.Voz;
+  const ICONO_VOZ = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const ICONO_PARAR = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+
+  // Pone el botón «Escuchar» en la cabecera de la sección a la vista (no en el formulario de datos).
+  function ponerBotonVoz() {
+    document.querySelectorAll('.boton-voz').forEach((b) => b.remove());
+    const vista = document.querySelector('.vista:not([hidden])');
+    if (!vista || vista.id === 'vista-datos' || !Voz.disponible) return;
+    const cabecera = vista.querySelector('.cabecera');
+    if (!cabecera) return;
+    let acciones = cabecera.querySelector(':scope > .acciones');
+    if (!acciones) {
+      acciones = document.createElement('div');
+      acciones.className = 'acciones';
+      cabecera.appendChild(acciones);
+    }
+    acciones.insertAdjacentHTML('beforeend', `<button type="button" class="boton secundario boton-voz" data-accion="escuchar" aria-pressed="${Voz.hablando}">${
+      Voz.hablando ? ICONO_PARAR + 'Parar lectura' : ICONO_VOZ + 'Escuchar'}</button>`);
+  }
+  Voz.alCambiar = ponerBotonVoz;
+
+  function escuchar() {
+    if (Voz.hablando) Voz.parar();
+    else Voz.leer(Voz.textosDe(document.querySelector('.vista:not([hidden])')));
+  }
+
   // ---------- Navegación ----------
 
   function ir(vista) {
+    Voz.parar();
     if ((vista === 'carta' || vista === 'detalle') && !estado.carta) vista = 'datos';
     if (vista === 'carta') pintarCarta();
     if (vista === 'detalle') pintarDetalle();
@@ -960,6 +992,7 @@
       if (b.dataset.vista === marcada) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
+    ponerBotonVoz();
     window.scrollTo(0, 0);
   }
 
@@ -967,8 +1000,9 @@
     const b = ev.target.closest('[data-vista], [data-detalle], [data-accion]');
     if (!b) return;
     if (b.dataset.accion === 'imprimir') imprimir();
-    else if (b.dataset.accion === 'retorno-anio') { estado.retorno.anio = Number(b.dataset.anio); pintarRetorno(); }
-    else if (b.dataset.accion === 'retorno-natal') { estado.retorno.lugar = null; pintarRetorno(); }
+    else if (b.dataset.accion === 'escuchar') escuchar();
+    else if (b.dataset.accion === 'retorno-anio') { Voz.parar(); estado.retorno.anio = Number(b.dataset.anio); pintarRetorno(); ponerBotonVoz(); }
+    else if (b.dataset.accion === 'retorno-natal') { Voz.parar(); estado.retorno.lugar = null; pintarRetorno(); ponerBotonVoz(); }
     else if (b.dataset.detalle) { estado.detalle = b.dataset.detalle; ir('detalle'); } else ir(b.dataset.vista);
   });
 
